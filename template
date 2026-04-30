@@ -1,0 +1,1214 @@
+## Model Responses
+
+### Qwen3.6 Plus
+# 🎬 **EchoFrame: Biographical Avatar Studio**
+*“Every life, myth, and legend speaks for itself.”*
+
+---
+
+## 🧭 **Core Concept**
+EchoFrame is an AI-powered video generation app that creates cinematic, first-person biographical documentaries where the subject narrates their own story. It supports historical figures, animals, mythological beings, supernatural entities, and fictional characters. All non-human subjects are rendered as **anthropomorphic avatars** that preserve defining traits while adopting human-like posture, facial expression, and speech mechanics.
+
+---
+
+## 🔄 **User Workflow**
+1. **Subject Input**: Name, reference images, text descriptions, or wiki links.
+2. **Profile Builder**: AI extracts key facts, traits, era, and cultural context.
+3. **Narrative Engine**: Generates a first-person script (editable, citation-backed).
+4. **Avatar Forge**: Creates an anthropomorphic avatar preview with customizable features.
+5. **Voice Studio**: Selects or generates a character-appropriate voice.
+6. **Scene & Render**: Composites backgrounds, lighting, camera movement, lip-sync, and gestures.
+7. **Edit & Export**: Trims, adds subtitles/music, applies credits, exports in multiple formats.
+8. **Compliance Tag**: Auto-appends C2PA metadata + visible "AI Biographical Reconstruction" disclaimer.
+
+---
+
+## 🧩 **Key Features**
+
+| Module | Description |
+|--------|-------------|
+| **1. First-Person Narrative Engine** | LLM + RAG pipeline trained on historical archives, mythological corpora, wikis, and literature. Generates POV monologues with tone presets (scholarly, dramatic, intimate, mythic). Includes source citations and uncertainty flags. |
+| **2. Anthropomorphic Avatar Forge** | Converts any subject into a human-like form using trait mapping (e.g., wings → back articulation, scales → skin texture overlay, animal muzzle → elongated jaw + prosthetic-style detailing). Offers 2D stylized, 2.5D neural, and full 3D mesh outputs. |
+| **3. Voice Synthesis Studio** | Historical voice modeling (when archival audio exists) or acoustic design engine for non-human/mythic voices (e.g., layered harmonics for deities, breathy resonance for forest spirits). Real-time pitch, pacing, and emotional modulation. |
+| **4. Lip Sync & Gesture Engine** | Combines LivePortrait, Wav2Lip++, and neural motion transfer for temporally consistent facial animation. Adds micro-expressions, head tilt, hand gestures, and eye tracking synced to narrative pacing. |
+| **5. Scene Composer** | AI-generated or stock-era backgrounds, dynamic lighting matching subject’s origin period/cosmology, cinematic camera paths, and optional B-roll insertion points for archival footage or illustrations. |
+| **6. Accuracy & Ethics Layer** | Fact-check overlay, "Verified/Speculative/Fictional" tagging, C2PA provenance embedding, public-domain enforcement for deceased figures, and mandatory disclaimers for living or copyrighted characters. |
+
+---
+
+## 🛠️ **Technical Architecture**
+
+```
+User Input → RAG Knowledge Base + LLM Script Generator → Editable Script
+                     ↓
+          Trait Extractor → Anthropomorphic Mapping → Avatar Mesh/Neural Render
+                     ↓
+          Voice Acoustic Designer → TTS/Voice Clone → Prosody-Optimized Audio
+                     ↓
+ Facial Motion Transfer + Gesture Synthesis → Lip Sync + Temporal Smoothing
+                     ↓
+ Scene Composer (Backgrounds, Lighting, Camera) → FFmpeg/Compositing Pipeline
+                     ↓
+ Final Render → C2PA Tagging → Export/Share
+```
+
+**Tech Stack:**
+- **Frontend**: React + Three.js/React-Three-Fiber for 3D preview, WebCodecs for local editing
+- **Backend**: Python/FastAPI, Celery + Redis for GPU job queuing
+- **AI Models**: 
+  - Script: Fine-tuned LLM + Retrieval (Wikidata, MythML, Archive.org, Project Gutenberg)
+  - Avatar: FLUX.1/SDXL + ControlNet (depth/pose) + TripoSR/Luma for 3D conversion
+  - Voice: Coqui TTS / OpenVoice + acoustic filters for non-human timbres
+  - Animation: LivePortrait + Wav2Lip++ + Gaussian Splatting for consistency
+- **Rendering**: Cloud GPU (RunPod/AWS), FFmpeg for assembly, C2PA for provenance
+
+---
+
+## ⚖️ **Ethical & Legal Safeguards**
+- **Consent Protocol**: Blocks generation for living persons without verified consent or public figure exception compliance.
+- **Historical Integrity**: Sources cited inline; speculative narratives clearly labeled; expert review mode for academic use.
+- **Provenance & Transparency**: Invisible + visible AI tags, C2PA metadata, editable disclaimer overlay.
+- **Content Policy**: Filters hate speech, misinformation, non-consensual deepfake patterns, and copyrighted fictional IP without fair-use justification.
+- **Bias Mitigation**: Cultural review prompt templates, diverse training data weighting, user override for stereotypical tropes.
+
+---
+
+## 💰 **Monetization Strategy**
+| Tier | Features |
+|------|----------|
+| **Free** | 30s videos, watermark, basic voices, public domain figures only |
+| **Pro ($19/mo)** | 3min videos, HD, custom voices, no watermark, historical accuracy tags, commercial license |
+| **Studio ($49/mo)** | 10min+, priority rendering, script collaboration tools, B-roll library, API access |
+| **Enterprise** | Museum/edu licensing, batch rendering, custom model fine-tuning, white-label export |
+
+Credits system for heavy rendering. Revenue share with voice actors/historical consultants for licensed assets.
+
+---
+
+## 📅 **Development Roadmap**
+| Phase | Timeline | Milestones |
+|-------|----------|------------|
+| **MVP** | 0–3 mos | Script generator, 2D avatar preview, basic TTS + lip sync, watermark export |
+| **v1.0** | 4–6 mos | Anthropomorphic mapping, voice studio, scene composer, C2PA tagging |
+| **v1.5** | 7–9 mos | 3D mesh support, temporal consistency upgrades, accuracy citation UI, collaboration tools |
+| **v2.0** | 10–12 mos | Real-time preview, style transfer (anime, realism, mythic), API for publishers/educators |
+
+---
+
+## 🌟 **Why EchoFrame Stands Out**
+- **Narrative-Centric**: Not just a talking head; it’s a biographical storytelling platform.
+- **Anthropomorphic Intelligence**: Purpose-built pipeline to humanize non-humans without losing iconic traits.
+- **Ethical by Design**: Provenance, accuracy labeling, and consent architecture baked into the core loop.
+- **Cross-Domain Utility**: Works for historians, museum educators, fantasy authors, game devs, and documentary filmmakers.
+- **Production-Ready**: Bridges AI generation with traditional video editing workflows for professional output.
+
+---
+
+## ⚠️ **Known Limitations & Mitigations**
+| Limitation | Mitigation |
+|------------|------------|
+| Temporal inconsistency in long videos | Keyframe anchoring + neural smoothing + user-editable clip segmentation |
+| Voice cloning accuracy for obscure figures | Acoustic design mode + voice actor licensing marketplace |
+| Anthropomorphism subjectivity | Trait priority sliders, style presets, user override tools |
+| Compute cost | Tiered rendering, local preview mode, cloud GPU auto-scaling + caching |
+
+---
+
+Would you like a **wireframe layout**, **prompt templates for the AI pipeline**, or a **go-to-market strategy for educators/museums** next?
+
+### MiniMax M2.7
+## 1. Executive Summary  
+**App Name:** *ChronicleAvatar*  
+
+ChronicleAvatar is a cloud‑based SaaS that lets anyone produce a short biographical documentary in which the subject narrates the story through a realistic (or stylised) talking avatar. The platform supports **human subjects, non‑human characters, and mythological/fictional beings** rendered as anthropomorphic avatars.  
+
+**Core value proposition** – Turn a raw biography (text, audio, or a Wikipedia entry) into a polished, share‑able video in minutes, without needing actors, studios, or expensive post‑production.
+
+---
+
+## 2. Core Feature Set  
+
+| Feature | Description |
+|---------|-------------|
+| **Biographical Script Ingestion** | Paste text, upload audio, or fetch a Wikipedia/DBpedia entry. AI extracts key events and structures a narrative. |
+| **Avatar Library** | Pre‑built 3‑D/2‑D avatars: realistic humans, stylized cartoons, anthropomorphic animals, and mythic creatures (dragons, phoenixes, etc.). |
+| **Custom Avatar Builder** | Upload a photograph or use a “character‑trait” slider to create a unique avatar. |
+| **Voice Synthesis & Cloning** | Choose from neutral TTS voices, or clone a supplied voice (with explicit consent). Supports multi‑lingual narration. |
+| **Lip‑Sync & Facial Animation** | Audio‑driven facial rigs (Wav2Lip‑style, FaceFormer, or diffusion‑based). |
+| **Gesture & Body Motion** | Script‑aware upper‑body gestures (hand movements, head tilts). |
+| **Scene Composer** | Pick from a library of cinematic backgrounds (historical locations, fantasy realms) or upload custom environments. |
+| **B‑Roll & Overlay Engine** | Auto‑insert relevant stock footage, maps, timelines, and text overlays. |
+| **Video Renderer** | Cloud‑GPU farm (Unreal Engine / Unity) producing MP4/H.265 in up to 4K. |
+| **Collaboration & Review** | Real‑time preview, comment threads, version history. |
+| **Export & Social Sharing** | Direct publish to YouTube, TikTok, Instagram with auto‑generated captions and hashtags. |
+| **API / Webhooks** | Enterprise customers can programmatically trigger renders. |
+| **Content‑Safety Guardrails** | Deep‑fake detection, watermarking, consent verification, and moderation filters. |
+
+---
+
+## 3. Target Users  
+
+| Segment | Use Cases |
+|---------|-----------|
+| **Educators & Students** | Create “living” biographies for school projects. |
+| **Content Creators & Influencers** | Personalised “story‑time” videos with fictional mascots. |
+| **Museums & Heritage Orgs** | Bring historical figures (or mythic beings) to life for exhibits. |
+| **Corporate L&D** | Internal documentaries narrated by a brand mascot. |
+| **Media Production Houses** | Rapid prototyping of documentary pilots. |
+| **Game/Anime Studios** | Pre‑visualise characters for marketing trailers. |
+
+---
+
+## 4. Avatar Taxonomy  
+
+| Category | Sub‑Categories | Generation Method |
+|----------|----------------|-------------------|
+| **Human – Realistic** | Age, gender, ethnicity, hair, attire | 3‑D photogrammetry + PBR shader, Neural Radiance Fields (NeRF) for close‑ups |
+| **Human – Stylised** | Cartoon, anime, oil‑painting | 2‑D vector‑based rendering (e.g., Toonify) + 2‑D lip‑sync |
+| **Anthropomorphic – Animal** | Fox, owl, cat, etc. | Rigged 3‑D animal models with human facial rigs, stylized fur shaders |
+| **Anthropomorphic – Hybrid** | Centaur, mer‑folk, dragon‑human | Modular “body‑part” composition (torso, limbs, wings) |
+| **Mythological / Fictional** | Phoenix, Griffin, Golem, etc. | Custom 3‑D assets with magical particle effects, AI‑driven stylisation |
+| **Abstract / Symbolic** | Talking book, floating symbol | Minimalist 3‑D shapes with expressive motion |
+
+*All non‑human avatars are rendered as **anthropomorphic** (human‑like facial structure) to preserve lip‑sync fidelity.*
+
+---
+
+## 5. End‑to‑End Generation Pipeline  
+
+Below is a high‑level view of the data‑flow and the AI/ML components at each stage.
+
+```
+User Input (Text / Audio / Wikipedia)
+          │
+          ▼
+┌─────────────────────────────────────┐
+│ 1️⃣ Script Parsing & Story Structuring│
+│   • NLP (entity extraction, timeline)│
+│   • Narrative templating (intro, climax, outro)│
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│ 2️⃣ Voice Synthesis / Cloning       │
+│   • Neutral TTS (Coqui, Tortoise)    │
+│   • Voice‑cloning (if consent)      │
+│   • Multi‑lingual support            │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│ 3️⃣ Avatar Asset Selection / Creation│
+│   • Library lookup (tag‑based)       │
+│   • Custom builder (trait sliders)   │
+│   • 3‑D rigging (Mixamo, custom)     │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│ 4️⃣ Audio‑Driven Facial Animation    │
+│   • Lip‑sync (Wav2Lip‑based)         │
+│   • Expression (emotion classifier) │
+│   • Eye‑gaze & blinks                │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│ 5️⃣ Body & Gesture Generation        │
+│   • Script‑aware gesture timing       │
+│   • Upper‑body IK (Inverse Kinematics)│
+│   • Idle‑loop idle animations        │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│ 6️⃣ Scene Composition                │
+│   • Background (pre‑rendered HDRI)   │
+│   • B‑Roll insertion (AI‑matched)    │
+│   • Text overlays / captions         │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│ 7️⃣ Cloud Rendering                 │
+│   • Unreal Engine / Unity ray‑tracing│
+│   • Output: 1080p/4K MP4 (H.265)    │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│ 8️⃣ Post‑Processing & Safety         │
+│   • Colour grading                  │
+│   • Audio mixing (voice + music)    │
+│   • Watermark + deep‑fake hash      │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+Final Video (Download / Social Share)
+```
+
+### 5.1 Script Parsing & Story Structuring  
+- **NLP Engine** (spaCy + custom transformers) extracts: dates, places, key events, emotions.  
+- **Story Graph** – nodes are events; edges encode causality.  
+- **Narrative Template Engine** – maps graph to a three‑act structure (setup → conflict → resolution) with a narrator intro/outro.
+
+### 5.2 Voice Synthesis / Cloning  
+- **Neutral TTS** – fine‑tuned multi‑speaker model (e.g., VITS) for each supported language.  
+- **Voice Cloning** – user uploads ≥30 seconds of clean speech; model (e.g., SV2TTS) creates a speaker embedding. **Only allowed with explicit consent**.  
+- **Prosody Control** – using prosody predictor (Montreal Forced Aligner) to sync emphasis with story beats.
+
+### 5.3 Avatar Asset Selection / Creation  
+- **Asset Store** – pre‑made 3‑D models tagged with attributes (species, era, style).  
+- **Custom Builder** – a “character‑trait” UI (e.g., head shape, fur density, wing span) feeds a generative model (Stable Diffusion +
+
+### stepfun/step-3.5-flash:free
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIDOLA // System Core</title>
+    <style>
+        /* 
+         * G L I T C H   C O R E   S T Y L E S
+         * Minimalist, terminal-inspired UI with glitch artifacts.
+         */
+        :root {
+            --bg-color: #050505;
+            --term-green: #00ff41;
+            --term-amber: #ffb000;
+            --term-red: #ff3333;
+            --term-dim: #008F11;
+            --font-stack: 'Courier New', Courier, monospace;
+            --glitch-offset: 2px;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: var(--bg-color);
+            color: var(--term-green);
+            font-family: var(--font-stack);
+            overflow: hidden;
+            font-size: 16px;
+            line-height: 1.2;
+        }
+
+        /* CRT Scanline Overlay */
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.15) 0px,
+                rgba(0,0,0,0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Flicker Animation */
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            5% { opacity: 0.95; }
+            10% { opacity: 0.9; }
+            15% { opacity: 0.95; }
+            20% { opacity: 0.99; }
+            50% { opacity: 0.95; }
+            80% { opacity: 0.9; }
+            100% { opacity: 0.97; }
+        }
+        #terminal {
+            animation: flicker 0.15s infinite;
+            padding: 20px;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Layout */
+        header {
+            border-bottom: 1px solid var(--term-dim);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px var(--term-green);
+        }
+
+        .status-line {
+            font-size: 0.8em;
+            color: var(--term-amber);
+        }
+
+        #screen {
+            flex: 1;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 5px;
+        }
+
+        #screen::-webkit-scrollbar {
+            width: 8px;
+        }
+        #screen::-webkit-scrollbar-thumb {
+            background: var(--term-dim);
+        }
+        #screen::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        #input-line {
+            display: flex;
+            align-items: center;
+        }
+
+        .prompt {
+            margin-right: 8px;
+            color: var(--term-amber);
+            font-weight: bold;
+        }
+
+        #command-input {
+            background: transparent;
+            border: none;
+            color: var(--term-green);
+            font-family: var(--font-stack);
+            font-size: 16px;
+            flex: 1;
+            outline: none;
+            caret-color: transparent;
+        }
+
+        /* Glitch Text Effect */
+        .glitch-text {
+            position: relative;
+        }
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+        }
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -1px 0 #ff00ff;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -1px 0 #00ffff;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(12px, 9999px, 4px, 0) }
+            20% { clip: rect(65px, 9999px, 89px, 0) }
+            40% { clip: rect(2px, 9999px, 3px, 0) }
+            60% { clip: rect(123px, 9999px, 34px, 0) }
+            80% { clip: rect(15px, 9999px, 95px, 0) }
+            100% { clip: rect(45px, 9999px, 78px, 0) }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(65px, 9999px, 100px, 0) }
+            20% { clip: rect(2px, 9999px, 25px, 0) }
+            40% { clip: rect(34px, 9999px, 12px, 0) }
+            60% { clip: rect(78px, 9999px, 56px, 0) }
+            80% { clip: rect(12px, 9999px, 34px, 0) }
+            100% { clip: rect(89px, 9999px, 12px, 0) }
+        }
+
+        /* UI Components */
+        .btn {
+            display: inline-block;
+            border: 1px solid var(--term-green);
+            color: var(--term-green);
+            padding: 4px 10px;
+            margin: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: var(--term-green);
+            color: var(--bg-color);
+            box-shadow: 0 0 8px var(--term-green);
+        }
+        .btn.active {
+            background: var(--term-green);
+            color: var(--bg-color);
+        }
+
+        .panel {
+            border: 1px solid var(--term-dim);
+            padding: 10px;
+            margin: 10px 0;
+            background: rgba(0, 20, 0, 0.3);
+        }
+
+        .ascii-art {
+            font-size: 12px;
+            line-height: 10px;
+            color: var(--term-amber);
+            white-space: pre;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            border: 1px solid var(--term-green);
+            padding: 1px;
+            margin: 5px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--term-green);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        input[type="text"], textarea, select {
+            background: #000;
+            border: 1px solid var(--term-dim);
+            color: var(--term-green);
+            font-family: var(--font-stack);
+            width: 100%;
+            padding: 5px;
+            margin: 2px 0 10px 0;
+        }
+        textarea {
+            resize: none;
+            height: 120px;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Message types */
+        .msg-error { color: var(--term-red); }
+        .msg-warn { color: var(--term-amber); }
+        .msg-sys { color: var(--term-green); }
+
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+    </style>
+</head>
+<body>
+<div id="terminal">
+    <header>
+        <div class="logo glitch-text" data-text="EIDOLA v9.2">EIDOLA v9.2</div>
+        <div class="status-line" id="clock">00:00:00:00</div>
+    </header>
+    <div id="screen"></div>
+    <div id="input-line">
+        <span class="prompt">root@eidola:~$</span>
+        <input type="text" id="command-input" autocomplete="off" spellcheck="false" autofocus>
+    </div>
+</div>
+
+<script>
+/**
+ * EIDOLA TERMINAL UI PROTOTYPE
+ * A simulated command-line interface for a biographical documentary video generator.
+ * Supports human, animal, mythical, and fictional characters as speaking avatars.
+ */
+
+// --- CORE SYSTEM STATE ---
+const state = {
+    screen: 'WELCOME', // current view
+    history: [],
+    character: {
+        name: '',
+        species: 'human', // human, animal, mythical, fictional
+        archetype: '',
+        description: '',
+        asciiArt: ''
+    },
+    script: '',
+    voice: 'neutral',
+    scene: 'void',
+    renderProgress: 0,
+    isRendering: false
+};
+
+// --- ASCII ART ASSETS ---
+const asciiAssets = {
+    logo: `
+ ██████╗ ███████╗████████╗██████╗  ██████╗ 
+██╔═══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗
+██║   ██║█████╗     ██║   ██████╔╝██║   ██║
+██║   ██║██╔══╝     ██║   ██╔══██╗██║   ██║
+╚██████╔╝███████╗   ██║   ██║  ██║╚██████╔╝
+ ╚═════╝ ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ 
+`,
+    human: `
+       .-""-.
+      /      \\
+      |  O  O |
+      |   ^   |
+      \\  ~~  /
+       '-..-'
+`,
+    dragon: `
+             /  \\/  \\
+            /        \\
+           /          \\
+          /    /\\      \\
+         /    /  \\      \\
+        /    /    \\      \\
+       /____/      \\______\\
+       |   |   |   |   |   |
+       |   |   |   |   |   |
+`,
+    fox: `
+      /\\__/\\
+     ( o.o  )
+      /  |  \\
+     /   |   \\
+    (    |    )
+     \\___|___/
+`,
+    phoenix: `
+       .--.
+      /  _ \\
+     /  / \\ \\
+    /  /   \\ \\
+   /  /     \\ \\
+  /  /       \\ \\
+ (  /         \\  )
+  \\(           )/
+   ||         ||
+   ||         ||
+   |__________|
+`,
+    void: `
+     . . . . . . . . . . . . . . . . . . . . . 
+    .                                         .
+   .                                           .
+  .                                             .
+   .                                           .
+    .                                         .
+     . . . . . . . . . . . . . . . . . . . . . 
+`,
+    forest: `
+        /\\        
+       /  \\       
+      /    \\      
+     /      \\     
+    /        \\    
+   /          \\   
+  /            \\  
+ /              \\ 
+/________________\\
+`,
+    city: `
+  .-=-.         .-=-.
+ /  /  \\       /  \\  \\
+|  |    |     |    |  |
+ \\  \\__/       \\__/  /
+  '-..-'         '-..-'
+`,
+    scriptEditor: `
+  ╔══════════════════════════════════════════╗
+  ║           SCRIPT NODE EDITOR             ║
+  ╚══════════════════════════════════════════╝
+  [LINE]   [CONTENT]
+  001      (neutral) Hello, I am the subject.
+  002      (sad)     My story begins in darkness...
+  003      (excited) And then everything changed!
+`,
+    render: `
+  ███████╗██████╗ ██╗   ██╗███████╗██████╗ 
+  ██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗
+  ███████╗██████╔╝██║   ██║█████╗  ██████╔╝
+  ╚════██║██╔══██╗██║   ██║██╔══╝  ██╔══██╗
+  ███████║██║  ██║╚██████╔╝███████╗██║  ██║
+  ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
+`
+};
+
+// --- UTILITIES ---
+
+function getTime() {
+    const now = new Date();
+    return now.toISOString().split('T')[1].replace('Z', '');
+}
+
+function typeWriter(element, text, speed = 10, callback) {
+    let i = 0;
+    element.innerHTML = '';
+    function type() {
+        if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+            // Randomize speed slightly for glitch effect
+            setTimeout(type, speed + Math.random() * 20);
+        } else if (callback) callback();
+    }
+    type();
+}
+
+function scrambleText(element, finalText, duration = 800) {
+    const chars = "!@#$%^&*()_+-=[]{}|;:,.<>?/`~";
+    let start = performance.now();
+    
+    function update(now) {
+        let elapsed = now - start;
+        if (elapsed < duration) {
+            let output = "";
+            for (let i = 0; i < finalText.length; i++) {
+                if (Math.random() > elapsed / duration) {
+                    output += chars[Math.floor(Math.random() * chars.length)];
+                } else {
+                    output += finalText[i];
+                }
+            }
+            element.textContent = output;
+            requestAnimationFrame(update);
+        } else {
+            element.textContent = finalText;
+        }
+    }
+    requestAnimationFrame(update);
+}
+
+function createASCII(artName) {
+    const art = asciiAssets[artName] || asciiAssets.void;
+    return `<pre class="ascii-art">${art}</pre>`;
+}
+
+// --- SCREEN RENDERERS ---
+
+const screens = {
+    WELCOME: () => {
+        return `
+<div class="ascii-art">${asciiAssets.logo}</div>
+<div class="panel">
+<p>INITIALIZING EIDOLA CORE... [OK]</p>
+<p>LOADING NEURAL AVATAR MODULES... [OK]</p>
+<p>MOUNTING MYTHOLOGICAL DATABASE... [OK]</p>
+<p>ESTABLISHING SECURE UPLINK... [OK]</p>
+<hr>
+<p class="msg-sys">Welcome, Operator.</p>
+<p>EIDOLA is a next-generation documentary video generator.</p>
+<p>You may input any subject—human, animal, mythical, or fictional—and craft their spoken biography.</p>
+<p>Type <span class="glitch-text" data-text="HELP">HELP</span> for commands, or <span class="glitch-text" data-text="START">START</span> to begin.</p>
+</div>
+`;
+    },
+    HELP: () => {
+        return `
+<div class="panel">
+<h2>_COMMAND REFERENCE_</h2>
+<p><strong>START</strong>    - Begin new project workflow</p>
+<p><strong>HELP</strong>       - Show this file</p>
+<p><strong>STATUS</strong>    - Show system status</p>
+<p><strong>CLEAR</strong>     - Clear terminal buffer</p>
+<p><strong>EXIT</strong>      - Terminate session</p>
+<hr>
+<p>Within modules, use mouse/touch to select options, or TAB to navigate.</p>
+<p>Press ENTER to confirm or ESC to cancel.</p>
+</div>
+`;
+    },
+    MAIN_MENU: () => {
+        return `
+<div class="panel">
+<h2>_PROJECT DASHBOARD_</h2>
+<p>Current Subject: <span class="${state.character.name ? 'msg-sys' : 'msg-warn'}">${state.character.name || '[UNDEFINED]'}</span></p>
+<p>Species Type: <span class="msg-sys">${state.character.species.toUpperCase()}</span></p>
+<p>Script Status: <span class="${state.script ? 'msg-sys' : 'msg-warn'}">${state.script ? `${state.script.split('\n').length} LINES` : 'EMPTY'}</span></p>
+<p>Voice Model: <span class="msg-sys">${state.voice.toUpperCase()}</span></p>
+<p>Scene Backdrop: <span class="msg-sys">${state.scene.toUpperCase()}</span></p>
+</div>
+<div class="panel">
+<p>Select module to configure:</p>
+<p><a href="#" class="btn" data-cmd="1">[1] SCRIPT EDITOR</a></p>
+<p><a href="#" class="btn" data-cmd="2">[2] CHARACTER FORGE</a></p>
+<p><a href="#" class="btn" data-cmd="3">[3] VOICE SYNTHESIS</a></p>
+<p><a href="#" class="btn" data-cmd="4">[4] SCENE COMPOSER</a></p>
+<p><a href="#" class="btn" data-cmd="5">[5] RENDER ENGINE</a></p>
+<p><a href="#" class="btn" data-cmd="0">[0] RETURN TO SHELL</a></p>
+</div>
+`;
+    },
+    SCRIPT_EDITOR: () => {
+        return `
+<div class="panel">
+<h2>_SCRIPT NODE EDITOR_</h2>
+<p>Enter the narration text. Enclose emotions in parentheses for vocal inflection.</p>
+<p>Example: <em>(sad) I never thought it would end like this.</em></p>
+</div>
+<div class="panel" style="background:#000;">
+<textarea id="script-area" spellcheck="false">${state.script}</textarea>
+</div>
+<div class="panel">
+<p><a href="#" class="btn" id="save-script">SAVE SCRIPT</a> <a href="#" class="btn" data-cmd="BACK">BACK</a></p>
+</div>
+`;
+    },
+    CHARACTER_FORGE: () => {
+        const speciesOptions = ['human', 'animal', 'mythical', 'fictional'];
+        const archetypes = {
+            human: ['Historian', 'Explorer', 'Artist', 'Warrior'],
+            animal: ['Fox', 'Wolf', 'Raven', 'Stag'],
+            mythical: ['Dragon', 'Phoenix', 'Sphinx', 'Gorgon'],
+            fictional: ['Elf', 'Dwarf', 'Android', 'Cyborg']
+        };
+        
+        let optionsHtml = speciesOptions.map(s => 
+            `<a href="#" class="btn ${state.character.species === s ? 'active' : ''}" data-species="${s}">${s.toUpperCase()}</a>`
+        ).join('');
+
+        let archetypeHtml = '';
+        if(state.character.species) {
+            archetypeHtml = `<div class="panel"><p>Select Archetype:</p><p>${archetypes[state.character.species].map(a => 
+                `<a href="#" class="btn ${state.character.archetype === a ? 'active' : ''}" data-archetype="${a}">${a.toUpperCase()}</a>`
+            ).join('')}</p></div>`;
+        }
+
+        let preview = '';
+        if(state.character.archetype) {
+            // Simple mapping from archetype to ascii key
+            let artKey = 'human';
+            if(['Fox','Wolf','Raven','Stag'].includes(state.character.archetype)) artKey = 'fox';
+            else if(['Dragon','Phoenix','Sphinx','Gorgon'].includes(state.character.archetype)) artKey = 'dragon';
+            else if(['Elf','Dwarf','Android','Cyborg'].includes(state.character.archetype)) artKey = 'human'; // treat as humanoid
+            preview = createASCII(artKey);
+        }
+
+        return `
+<div class="panel">
+<h2>_CHARACTER FORGE_</h2>
+<p>Define the subject's biological and mythological parameters.</p>
+</div>
+<div class="panel">
+<p>Species Classification:</p>
+<p>${optionsHtml}</p>
+</div>
+${archetypeHtml}
+<div class="panel">
+<p>Name:</p>
+<input type="text" id="char-name" value="${state.character.name}" placeholder="SUBJECT DESIGNATION">
+<p>Description (appearance, era, origin):</p>
+<textarea id="char-desc" placeholder="e.g., A 12th-century samurai spirit...">${state.character.description}</textarea>
+</div>
+${preview ? `<div class="panel" style="text-align:center;">${preview}</div>` : ''}
+<div class="panel">
+<p><a href="#" class="btn" id="save-char">SAVE CHARACTER</a> <a href="#" class="btn" data-cmd="BACK">BACK</a></p>
+</div>
+`;
+    },
+    VOICE_SYNTH: () => {
+        const voices = ['neutral', 'elder', 'youth', 'authoritative', 'whisper', 'ghostly', 'robotic', 'mythic'];
+        return `
+<div class="panel">
+<h2>_VOICE SYNTHESIS MODULE_</h2>
+<p>Select vocal qualities. Non-human voices utilize the ENTITY AUDIO ENGINE.</p>
+</div>
+<div class="panel">
+<p>Voice Profile:</p>
+<p>${voices.map(v => 
+    `<a href="#" class="btn ${state.voice === v ? 'active' : ''}" data-voice="${v}">${v.toUpperCase()}</a>`
+).join('')}</p>
+</div>
+<div class="panel">
+<p>Pitch: <span id="pitch-val">1.0</span></p>
+<input type="range" min="0.5" max="2" step="0.1" value="1.0" id="pitch-slider">
+<p>Tempo: <span id="tempo-val">1.0</span></p>
+<input type="range" min="0.5" max="2" step="0.1" value="1.0" id="tempo-slider">
+</div>
+<div class="panel">
+<p><a href="#" class="btn" id="save-voice">SAVE VOICE</a> <a href="#" class="btn" data-cmd="BACK">BACK</a></p>
+</div>
+`;
+    },
+    SCENE_COMPOSER: () => {
+        const scenes = [
+            { id: 'void', name: 'Void', art: 'void' },
+            { id: 'forest', name: 'Ancient Forest', art: 'forest' },
+            { id: 'city', name: 'Neo-Tokyo', art: 'city' },
+            { id: 'hall', name: 'Great Hall', art: 'void' },
+            { id: 'battlefield', name: 'Battlefield', art: 'void' }
+        ];
+        let sceneHtml = '';
+        scenes.forEach(s => {
+            let art = asciiAssets[s.art] || asciiAssets.void;
+            sceneHtml += `
+<div class="panel" style="display:inline-block; width:${100/scenes.length - 2}%; vertical-align:top;">
+<p><strong>${s.name.toUpperCase()}</strong></p>
+<pre class="ascii-art" style="font-size:8px; line-height:6px;">${art}</pre>
+<p><a href="#" class="btn ${state.scene === s.id ? 'active' : ''}" data-scene="${s.id}">SELECT</a></p>
+</div>`;
+        });
+        return `
+<div class="panel">
+<h2>_SCENE COMPOSER_</h2>
+<p>Select the environmental backdrop. Apply atmospheric filters post-render.</p>
+</div>
+<div style="text-align:center;">
+${sceneHtml}
+</div>
+<div class="panel">
+<p><a href="#" class="btn" id="save-scene">SAVE SCENE</a> <a href="#" class="btn" data-cmd="BACK">BACK</a></p>
+</div>
+`;
+    },
+    RENDER: () => {
+        const ready = state.character.name && state.script && state.voice && state.scene;
+        return `
+<div class="panel">
+<h2>_RENDER ENGINE_</h2>
+<p>Final assembly pipeline. Generate video file from all components.</p>
+<p>Status: <span class="${ready ? 'msg-sys' : 'msg-error'}">${ready ? 'ALL SYSTEMS GO' : 'MISSING COMPONENTS'}</span></p>
+</div>
+${ready ? `
+<div class="panel">
+<div class="progress-bar"><div class="progress-fill" id="render-progress"></div></div>
+<p id="render-status">>> WAITING FOR INPUT...</p>
+</div>
+<div class="panel">
+<p><a href="#" class="btn" id="start-render">INITIATE RENDER</a> <a href="#" class="btn" data-cmd="BACK">BACK</a></p>
+</div>
+` : `
+<div class="panel msg-error">
+<p>CANNOT INITIATE. PLEASE CONFIGURE:</p>
+<ul>
+<li>${state.character.name ? '[OK]' : 'Character Name'}</li>
+<li>${state.script ? '[OK]' : 'Script'}</li>
+<li>${state.voice ? '[OK]' : 'Voice'}</li>
+<li>${state.scene ? '[OK]' : 'Scene'}</li>
+</ul>
+</div>
+<div class="panel">
+<p><a href="#" class="btn" data-cmd="BACK">BACK</a></p>
+</div>
+`};
+};
+
+// --- CORE APPLICATION LOGIC ---
+
+const app = {
+    screenEl: document.getElementById('screen'),
+    inputEl: document.getElementById('command-input'),
+    clockEl: document.getElementById('clock'),
+
+    init() {
+        // Start clock
+        setInterval(() => {
+            this.clockEl.textContent = getTime();
+        }, 1000);
+        // Glitch effect: occasional character corruption
+        setInterval(() => {
+            if(Math.random() > 0.7) this.applyGlobalGlitch();
+        }, 2000);
+        // Initial render
+        this.renderScreen('WELCOME');
+        // Input handling
+        this.inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = this.inputEl.value.trim().toLowerCase();
+                this.handleCommand(cmd);
+                this.inputEl.value = '';
+            }
+        });
+        // Click handling for buttons (delegation)
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-cmd]')) {
+                this.handleCommand(e.target.dataset.cmd);
+            }
+            if (e.target.matches('[data-species]')) {
+                state.character.species = e.target.dataset.species;
+                state.character.archetype = ''; // reset
+                this.renderScreen('CHARACTER_FORGE');
+            }
+            if (e.target.matches('[data-archetype]')) {
+                state.character.archetype = e.target.dataset.archetype;
+                this.renderScreen('CHARACTER_FORGE');
+            }
+            if (e.target.matches('[data-voice]')) {
+                state.voice = e.target.dataset.voice;
+                this.renderScreen('VOICE_SYNTH');
+            }
+            if (e.target.matches('[data-scene]')) {
+                state.scene = e.target.dataset.scene;
+                this.renderScreen('SCENE_COMPOSER');
+            }
+            if (e.target.id === 'save-script') {
+                const area = document.getElementById('script-area');
+                state.script = area.value;
+                this.notify('Script saved.');
+                this.renderScreen('MAIN_MENU');
+            }
+            if (e.target.id === 'save-char') {
+                state.character.name = document.getElementById('char-name').value;
+                state.character.description = document.getElementById('char-desc').value;
+                this.notify('Character profile saved.');
+                this.renderScreen('MAIN_MENU');
+            }
+            if (e.target.id === 'save-voice') {
+                const pitch = document.getElementById('pitch-slider').value;
+                const tempo = document.getElementById('tempo-slider').value;
+                document.getElementById('pitch-val').textContent = pitch;
+                document.getElementById('tempo-val').textContent = tempo;
+                this.notify('Voice settings saved.');
+                this.renderScreen('MAIN_MENU');
+            }
+            if (e.target.id === 'save-scene') {
+                this.notify('Scene saved.');
+                this.renderScreen('MAIN_MENU');
+            }
+            if (e.target.id === 'start-render') {
+                this.startRender();
+            }
+        });
+    },
+
+    handleCommand(cmd) {
+        const parts = cmd.split(' ');
+        const main = parts[0];
+        // Command routing
+        switch(main) {
+            case 'help': this.renderScreen('HELP'); break;
+            case 'clear': this.screenEl.innerHTML = ''; break;
+            case 'status': 
+                this.log(`SYSTEM: ${state.isRendering ? 'RENDERING' : 'IDLE'}`);
+                this.log(`MEMORY: ${Math.floor(Math.random()*100)}% USED`);
+                break;
+            case 'start': case 'menu': this.renderScreen('MAIN_MENU'); break;
+            case 'exit': 
+                this.log('TERMINATING SESSION...');
+                setTimeout(() => location.reload(), 1500);
+                break;
+            case 'back': this.renderScreen('MAIN_MENU'); break;
+            case '1': this.renderScreen('SCRIPT_EDITOR'); break;
+            case '2': this.renderScreen('CHARACTER_FORGE'); break;
+            case '3': this.renderScreen('VOICE_SYNTH'); break;
+            case '4': this.renderScreen('SCENE_COMPOSER'); break;
+            case '5': this.renderScreen('RENDER'); break;
+            default:
+                if(cmd) this.log(`COMMAND NOT RECOGNIZED: ${cmd}`, 'error');
+        }
+        // Focus input again
+        this.inputEl.focus();
+    },
+
+    renderScreen(screenId) {
+        state.screen = screenId;
+        const renderFn = screens[screenId];
+        if (!renderFn) return;
+        // Clear and re-render
+        this.screenEl.innerHTML = '';
+        const html = renderFn();
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html;
+        // Scan children, apply glitch text effect to elements with class 'glitch-text' or headings
+        wrapper.querySelectorAll('.glitch-text, h2, .btn').forEach(el => {
+            scrambleText(el, el.textContent, 500);
+        });
+        this.screenEl.appendChild(wrapper);
+        
+        // Special post-render init
+        if (screenId === 'SCRIPT_EDITOR') {
+            // Focus textarea? Not typical in terminal but we can select
+            // We'll just have them type via the main input? Actually using textarea is clunky in this CLI mock.
+            // For simplicity, we accept that they use the textarea and then click SAVE.
+        }
+    },
+
+    log(msg, type='sys') {
+        const line = document.createElement('div');
+        line.className = `msg-${type}`;
+        line.textContent = `[${getTime()}] ${msg}`;
+        this.screenEl.appendChild(line);
+        this.screenEl.scrollTop = this.screenEl.scrollHeight;
+    },
+
+    notify(msg) {
+        this.log(msg);
+    },
+
+    startRender() {
+        if (state.isRendering) return;
+        state.isRendering = true;
+        const btn = document.getElementById('start-render');
+        if(btn) btn.disabled = true;
+        const statusEl = document.getElementById('render-status');
+        const progressEl = document.getElementById('render-progress');
+        
+        const steps = [
+            ">> INITIALIZING NEURAL MESH...",
+            ">> LOADING TEXT-TO-SPEECH MODEL...",
+            ">> PROCESSING LIP-SYNC DATA...",
+            ">> GENERATING BACKGROUND LAYERS...",
+            ">> COMPOSITING AVATAR & SCENE...",
+            ">> APPLYING POST-PROCESS FILTERS...",
+            ">> ENCODING VIDEO STREAM...",
+            ">> FINALIZING FILE..."
+        ];
+
+        let step = 0;
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 2;
+            if(progress > 100) progress = 100;
+            progressEl.style.width = progress + '%';
+            
+            // Update status at intervals
+            if (progress > (step+1) * (100/steps.length) && step < steps.length) {
+                statusEl.textContent = steps[step];
+                step++;
+            }
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                statusEl.textContent = ">> RENDER COMPLETE. SAVING TO /OUTPUT/...";
+                setTimeout(() => {
+                    this.log(`SUCCESS: VIDEO GENERATED AT /videos/${state.character.name.replace(/\s/g,'_')}_doc.mp4`);
+                    state.isRendering = false;
+                    this.renderScreen('MAIN_MENU');
+                }, 1000);
+            }
+        }, 80);
+    },
+
+    applyGlobalGlitch() {
+        const chars = "█▓▒░╬╫╪┼┤┬┴┌┐└┘├─│";
+        const el = this.screenEl.children[Math.floor(Math.random() * this.screenEl.children.length)];
+        if (!el) return;
+        const original = el.textContent;
+        let newText = '';
+        for(let i=0; i<original.length; i++) {
+            if(Math.random() > 0.95) {
+                newText += chars[Math.floor(Math.random()*chars.length)];
+            } else {
+                newText += original[i];
+            }
+        }
+        el.textContent = newText;
+        // Revert after a short delay
+        setTimeout(() => {
+            if(el.parentNode) el.textContent = original;
+        }, 100);
+    }
+};
+
+// Start the app when DOM is ready
+window.onload = () => app.init();
+
+</script>
+</body>
+</html>
+```
+
+### DeepSeek V3.2
+# **App Concept: BioAvatar**
+
+## **App Name:** BioAvatar
+
+## **Core Concept:**
+An AI-powered app that creates biographical documentary videos where the subject (human, animal, mythological creature, or fictional character) appears as a speaking avatar narrating their own life story in a realistic, animated format.
+
+---
+
+## **Key Features**
+
+### **1. Avatar Creation Engine**
+- **Human Subjects:** Upload photos/videos → generates photorealistic or stylized 3D talking avatar
+- **Non-Human/Historical Subjects:** 
+  - *Animals/Objects:* Choose base anthropomorphic form (e.g., walking/talking lion, sentient artifact)
+  - *Mythological Creatures:* Library of templates (dragons, phoenixes, centaurs) + customization
+  - *Fictional Characters:* Style transfer from descriptions or existing art
+- **Customization:** Adjust clothing, era-appropriate styling, expressive features
+
+### **2. Script & Narration System**
+- **AI-Assisted Scriptwriting:** Input key life facts → generates first-person narrative script
+- **Voice Synthesis Options:**
+  - Clone existing voice recordings (for living/recent subjects)
+  - Generate period/character-appropriate voices (historical/mythological)
+  - Multiple tone settings (reflective, dramatic, educational)
+- **Lip-Sync Technology:** Perfectly matches avatar mouth movements to narration
+
+### **3. Scene & Background Generator**
+- **Historical Context:** AI generates appropriate backgrounds (medieval castle, 1920s Paris, cosmic realms)
+- **Dynamic Scenes:** Transitions between key life moments
+  
+
+### **4. User Workflow**
+```
+1. SELECT SUBJECT → Human/Animal/Mythical/Fictional
+2. UPLOAD REFERENCES → Photos, descriptions, historical data
+3. CUSTOMIZE AVATAR → Appearance, voice style, personality traits
+4. INPUT STORY → Timeline, key events, anecdotes
+5. GENERATE VIDEO → AI produces complete documentary (3-
+6. EDIT & SHARE → Final tweaks, export, sharing options
+```
+
+---
+
+## **Technical Implementation**
+
+**AI Stack Required:**
+- 3D modeling/GANs for avatar generation
+- Text-to-speech with emotional inflection
+- Lip-sync neural networks
+- Historical/contextual image generation
+- Video composition pipeline
+
+---
+
+## **Example Use Cases**
+
+1. **Historical Figure:** Marie Curie avatar narrating her discoveries
+2. **Deceased Pet:** Anthropomorphic dog telling its life story
+3. **Mythological Being:** Athena explaining Greek mythology firsthand
+4. **Fictional Character:** Sherlock Holmes discussing his cases
+5. **Inanimate Object:** The Rosetta Stone recounting its journey
+
+---
+
+## **Unique Selling Points**
+-[x] "First-person" biographical perspective creates emotional connection
+-[x] Brings impossible subjects to life (dinosaurs, gods, fictional beings)
+-[x] Educational yet entertaining format suitable for all ages
+-[x] Preserves legacy through animated storytelling
+-[x] Customization makes each video feel personal and authentic
+
+---
+
+## **Potential Monetization**
+- Freemium: Basic avatars with watermarks
+- Subscription: Full customization, longer videos
+- One-time projects for special occasions (memorials, educational projects)
+- Partner with museums/historical societies for curated content
+
+This app would bridge documentary filmmaking, AI animation, and personalized storytelling, creating a new medium for experiencing biographies from a uniquely personal perspective.
