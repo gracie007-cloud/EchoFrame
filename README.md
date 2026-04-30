@@ -100,4 +100,4 @@ Credits system for heavy renders. Revenue-sharing marketplace for voice actors a
 - **Ethics & Accessibility by Default**: C2PA provenance, consent gates, multi-language captioning, and cultural guardrails turn legal/compliance risks into platform strengths.
 - **Professional-Grade Output**: Bridges generative AI with traditional post-production workflows, making it viable for museum installations, documentary pitching, educational curricula, and transmedia marketing.
 
-Would you like a detailed JSON schema for the Dev CLI command structure, prompt engineering templates for the acoustic design engine, or a museum onboarding compliance checklist next?
+
