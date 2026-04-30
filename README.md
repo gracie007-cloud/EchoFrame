@@ -1,1 +1,2 @@
-# EchoFrame
+# Biographical Avatar Studio
+an AI-powered video generation app that creates cinematic, first-person biographical documentaries where the subject narrates their own story. It supports historical figures, animals, mythological beings, supernatural entities, and fictional characters. All non-human subjects are rendered as anthropomorphic avatars that preserve defining traits while adopting human-like posture, facial expression, and speech mechanics.
