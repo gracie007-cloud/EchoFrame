@@ -1,0 +1,190 @@
+# 🎛️ Acoustic Design Engine: Prompt Engineering Templates
+
+These templates are designed for the **Acoustic Design Module** of AethelFrame. They steer the neural audio synthesis model by defining simulated "anatomy," material resonance, and spatial processing to create convincing voices for non-human or mythic subjects.
+
+---
+
+## 📜 1. Universal Master Template
+Use this structure to construct custom voice profiles. Replace bracketed variables `[...]` with specific traits.
+
+```text
+[ROLE]: Define subject (e.g., "Ancient Dragon", "Sentient Sword", "Human Explorer").
+
+🧬 VOCAL ANATOMY SIMULATION:
+- Vocal Tract: [Length/Shape] (e.g., "Elongated tube", "Short/Squeaky", "Wide/Cavernous")
+- Resonance Chambers: [Body Part] (e.g., "Chest cavity", "Carapace", "Hollow glass center")
+- Articulator Type: [Mechanism] (e.g., "Lips/Tongue (Human)", "Guttural/Throat", "Vibration/Synthesis", "Telepathic")
+
+🔊 MATERIAL & TEXTURE:
+- Timbre Base: [Quality] (e.g., "Warm baritone", "Gravelly stone", "Sharp metallic", "Breathy mist")
+- Surface Interaction: [Effect] (e.g., "Fur muffling", "Scale clicking undertones", "Crystal ringing overtones")
+- Distortion Level: [0.0 to 1.0] (e.g., "0.1 for slight grit", "0.8 for demonic corruption")
+
+🌌 SPATIAL & HARMONIC FX:
+- Harmonic Layers: [Count] (e.g., "Single voice", "Choral triad", "Sub-bass rumble")
+- Reverb Environment: [Space] (e.g., "Dry close-up", "Cathedral hall", "Void/No air")
+- Pitch Modulation: [Type] (e.g., "Steady", "Undulating/Liquid", "Glitchy/Unstable")
+
+🎭 PERFORMANCE DIRECTION:
+- Emotional State: [Mood] (e.g., "Weary", "Manically energetic", "Coldly logical")
+- Pacing Style: [Rhythm] (e.g., "Slow/Deliberate", "Rapid/Jittery", "Ethereal/Timeless")
+```
+
+---
+
+## 🦁 2. Archetype Presets
+Pre-configured prompt blocks for common biographical subjects.
+
+### A. The Anthropomorphic Beast / Creature
+*Ideal for: Animals given human speech (Wolves, Owls, Bears).*
+
+> **Subject:** The Grand Stag
+```text
+🧬 VOCAL ANATOMY:
+- Vocal Tract: Elongated, wide pharynx for deep resonance.
+- Resonance Chambers: Massive chest cavity, hollow nasal passages.
+- Articulator Type: Guttural throat manipulation; simulated tongue clicks for consonants.
+
+🔊 MATERIAL & TEXTURE:
+- Timbre Base: Deep Baritone, organic wood-like warmth.
+- Surface Interaction: Heavy breath modulation; subtle fur-dampening on high frequencies.
+- Distortion Level: 0.1 (Clean but raw).
+
+🌌 SPATIAL & HARMONIC:
+- Harmonic Layers: 1 (Single rich voice).
+- Reverb Environment: Forest canopy (Short decay, slight echo).
+- Pitch Modulation: Slight downward inflection at ends of sentences (Gruff authority).
+
+🎭 PERFORMANCE:
+- Emotional State: Protective but weary. Old wisdom.
+- Pacing Style: Slow, deliberate, pauses for "breath."
+```
+
+### B. The Element / Deity
+*Ideal for: Gods, Titans, Spirits of Nature.*
+
+> **Subject:** The Spirit of the Volcano
+```text
+🧬 VOCAL ANATOMY:
+- Vocal Tract: Non-biological; simulated tectonic grinding.
+- Resonance Chambers: Magma chamber simulation (Sub-bass heavy).
+- Articulator Type: Roar-to-speech transition; explosive plosives.
+
+🔊 MATERIAL & TEXTURE:
+- Timbre Base: Aggressive Bass, crackling fire undertones.
+- Surface Interaction: Ash and embers texture overlay on sibilants ("S", "Sh" sounds).
+- Distortion Level: 0.6 (Heavy saturation).
+
+🌌 SPATIAL & HARMONIC:
+- Harmonic Layers: 3 (Main voice + 1 Octave Down Sub + 1 Chorus layer of whispers).
+- Reverb Environment: Cavernous/Infinite depth.
+- Pitch Modulation: Unstable; fluctuating tremolo during high emotion.
+
+🎭 PERFORMANCE:
+- Emotional State: Destructive power, barely contained.
+- Pacing Style: Booming, sudden volume spikes.
+```
+
+### C. The Sentient Artifact
+*Ideal for: Cursed objects, Historical tools, AI entities.*
+
+> **Subject:** The Cursed Mirror
+```text
+🧬 VOCAL ANATOMY:
+- Vocal Tract: None simulated (Glass vibration).
+- Resonance Chambers: Hollow silver backing.
+- Articulator Type: High-frequency resonance shaped into phonemes; "Cold" articulation.
+
+🔊 MATERIAL & TEXTURE:
+- Timbre Base: Whispery, metallic, sharp treble focus.
+- Surface Interaction: Glass friction shimmer on vowels; sharp "clink" transients on plosives ("P", "T").
+- Distortion Level: 0.3 (Crystal clarity with jagged edges).
+
+🌌 SPATIAL & HARMONIC:
+- Harmonic Layers: 2 (Voice + Eerie glass harmonica ring).
+- Reverb Environment: Tight, claustrophobic bathroom or vault.
+- Pitch Modulation: Reverse reverb tails; voice slightly detuned to cause unease.
+
+🎭 PERFORMANCE:
+- Emotional State: Seductive, mocking, timeless boredom.
+- Pacing Style: Silky smooth, slightly faster than human natural rhythm.
+```
+
+### D. The Abstract / Concept
+*Ideal for: Death, Time, The Void, Concepts personified.*
+
+> **Subject:** The Concept of Entropy
+```text
+🧬 VOCAL ANATOMY:
+- Vocal Tract: Disintegrating; formant shifting constantly.
+- Resonance Chambers: Surrounds the listener.
+- Articulator Type: Synthesized whisper stack; non-linear audio.
+
+🔊 MATERIAL & TEXTURE:
+- Timbre Base: Androgynous, airy, shifting between male/female/child tones.
+- Surface Interaction: High-frequency noise floor rising at sentence ends.
+- Distortion Level: 0.0 (Pure signal) -> 0.9 (Chaos) dynamically.
+
+🌌 SPATIAL & HARMONIC:
+- Harmonic Layers: 5 (Whisper choir).
+- Reverb Environment: Vacuum decay (Reverse reverb).
+- Pitch Modulation: Glitchy; random pitch drops.
+
+🎭 PERFORMANCE:
+- Emotional State: Indifferent, inevitable.
+- Pacing Style: Erratic; sudden silence followed by rapid speech.
+```
+
+---
+
+## ⚙️ 3. Modulator "Micro-Prompts"
+Add these snippets to the **Master Template** to fine-tune specific qualities without rewriting the whole profile.
+
+| Goal | Micro-Prompt Snippet |
+|------|----------------------|
+| **Make it sound ancient** | `Add "Vocal fry" and slight pitch drift downwards over long vowels.` |
+| **Make it sound robotic** | `Set "Quantized articulation"; remove breath noise entirely. Add metallic comb-filtering.` |
+| **Make it sound underwater** | `Apply "Low-pass filter at 2kHz"; add "bubble pop" transient artifacts between sentences.` |
+| **Make it sound huge** | `Shift pitch down -4 semitones; apply "Sidechain compression" so bass ducks the high end.` |
+| **Make it sound ghostly** | `Add "Formant shift up +3 semitones" (chipmunk effect masked by dark reverb); remove consonant transients.` |
+
+---
+
+## 🛑 4. Anti-Hallucination & Safety Directives
+AI audio models often introduce artifacts when pushed too far. Include these instructions in your system prompt to ensure clean output.
+
+**⚠️ Negative Prompts (What to Avoid):**
+> "Do not generate popping sounds (plosives). No metallic clipping. Avoid 'robotic warbling' outside of specific directives. Do not hallucinate background music. Maintain consistent timbre throughout the duration. No slurping or wet mouth noises."
+
+**🔧 Stability Constraints:**
+> - **Duration Limit:** If `harmonic_layers > 3`, enforce a `tempo_multiplier` of at least `0.9` to prevent synthesis collision artifacts.
+> - **Articulation Check:** If `articulation_type` is `Telepathic` or `Non-Vocal`, ensure the phoneme recognizer forces a minimum consonant sharpness of `0.6` to maintain transcript readability.
+
+---
+
+## 🧪 5. Example CLI Integration
+How to inject these prompts into the JSON schema structure.
+
+```json
+{
+  "operation": "synthesize_voice",
+  "parameters": {
+    "voice_type": "acoustic_design",
+    "acoustic_design": {
+      "base_timbre": "baritone",
+      "prompt_text": "🧬 VOCAL ANATOMY: Elongated pharynx, hollow chest resonance. 🔊 MATERIAL: Guttural texture, fur-dampened highs. 🌌 HARMONICS: 1 layer, slight sub-bass rumble. 🎭 PERFORMANCE: Weary, protective.",
+      "harmonic_layers": 1,
+      "sub_bass_resonance": 0.7,
+      "breath_modulation": 0.4,
+      "spectral_filters": ["stone_friction"],
+      "negative_prompt": "no metallic clipping, no popping, no background music, consistent timbre"
+    },
+    "prosody_settings": {
+      "pitch_variation": 0.8,
+      "tempo_multiplier": 0.85
+    }
+  }
+}
+```
+
+Would you like a guide on **integrating these templates with the Story Graph**, or should we explore the **Compliance & Provenance** checking mechanisms next?
