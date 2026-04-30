@@ -1,0 +1,262 @@
+# 📦 AethelFrame Dev CLI: JSON Command Schema
+
+Below is a complete, **JSON Schema Draft-07 compliant** definition for the CLI payload structure. It supports the full biographical pipeline, anthropomorphic mapping, acoustic design, compliance tagging, and batch rendering workflows.
+
+<details>
+<summary>🔍 View Full JSON Schema</summary>
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AethelFrame CLI Command Payload",
+  "description": "Unified JSON structure for invoking AethelFrame pipeline operations via CLI, CI/CD, or programmatic API.",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "CLI execution context and routing metadata.",
+      "properties": {
+        "project_id": { "type": "string", "format": "uuid", "description": "Unique project identifier. Auto-generated if omitted during init." },
+        "cli_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "CLI version for backward compatibility." },
+        "execution_mode": { "type": "string", "enum": ["sync", "async", "dry_run"], "default": "sync", "description": "Run synchronously, queue asynchronously, or validate only." },
+        "priority": { "type": "string", "enum": ["low", "normal", "high", "critical"], "default": "normal" },
+        "output_dir": { "type": "string", "description": "Local path for artifacts, logs, and renders." }
+      },
+      "required": ["execution_mode"]
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "init_project",
+        "generate_script",
+        "configure_avatar",
+        "synthesize_voice",
+        "compose_scene",
+        "start_render",
+        "export_video",
+        "queue_status"
+      ],
+      "description": "Pipeline stage to execute."
+    },
+    "parameters": {
+      "type": "object",
+      "oneOf": [
+        {
+          "if": { "properties": { "@op": { "const": "init_project" } }, "required": ["@op"] },
+          "then": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "minLength": 2, "maxLength": 120 },
+              "subject_type": { "type": "string", "enum": ["human", "animal", "mythical", "fictional", "artifact"] },
+              "source_data": {
+                "type": "object",
+                "properties": {
+                  "wikipedia_urls": { "type": "array", "items": { "type": "string", "format": "uri" } },
+                  "archival_docs": { "type": "array", "items": { "type": "string" } },
+                  "reference_images": { "type": "array", "items": { "type": "string", "format": "uri" } },
+                  "raw_text": { "type": "string" }
+                }
+              },
+              "target_language": { "type": "string", "default": "en-US", "pattern": "^[a-z]{2}-[A-Z]{2}$" }
+            },
+            "required": ["name", "subject_type"]
+          }
+        },
+        {
+          "if": { "properties": { "@op": { "const": "generate_script" } }, "required": ["@op"] },
+          "then": {
+            "type": "object",
+            "properties": {
+              "length_seconds": { "type": "integer", "minimum": 30, "maximum": 1200 },
+              "narrative_structure": { "type": "string", "enum": ["three_act", "chronological", "thematic"], "default": "three_act" },
+              "tone_profile": { "type": "string", "enum": ["scholarly", "intimate", "dramatic", "mythic", "reflective"] },
+              "accuracy_mode": { "type": "string", "enum": ["verified_only", "speculative_inline", "creative_fiction"], "default": "speculative_inline" },
+              "story_graph_weights": {
+                "type": "object",
+                "properties": {
+                  "causality_priority": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.7 },
+                  "emotional_arc_weight": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.5 },
+                  "historical_precision": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.8 }
+                }
+              },
+              "override_prompt": { "type": "string", "description": "Custom LLM steering instructions." }
+            },
+            "required": ["length_seconds"]
+          }
+        },
+        {
+          "if": { "properties": { "@op": { "const": "configure_avatar" } }, "required": ["@op"] },
+          "then": {
+            "type": "object",
+            "properties": {
+              "base_model_id": { "type": "string", "pattern": "^AF-[A-Z0-9_-]{6,20}$" },
+              "anthropomorphic_mapping": {
+                "type": "object",
+                "description": "Trait-to-articulation translation for non-human subjects.",
+                "properties": {
+                  "primary_features": { "type": "array", "items": { "type": "string", "enum": ["fur", "scales", "carapace", "stone_texture", "feathers", "plasma_glow", "none"] } },
+                  "limb_adaptation": { "type": "string", "enum": ["humanoid_bilateral", "quadruped_bipedal", "floating_ethereal", "modular_assembly"], "default": "humanoid_bilateral" },
+                  "facial_rig_tolerance": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.85, "description": "Allows prosthetic-style deformation for non-human muzzles/beaks while preserving lip-sync topology." },
+                  "expressive_overrides": {
+                    "type": "object",
+                    "properties": {
+                      "eye_glow_intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+                      "wing_flutter_sync": { "type": "boolean", "default": false },
+                      "micro_tremor_humansim": { "type": "boolean", "default": true }
+                    }
+                  }
+                }
+              },
+              "style_profile": { "type": "string", "enum": ["photorealistic", "stylized_cartoon", "oil_painting", "mythic_anime", "vintage_cinema"] }
+            },
+            "required": ["anthropomorphic_mapping", "style_profile"]
+          }
+        },
+        {
+          "if": { "properties": { "@op": { "const": "synthesize_voice" } }, "required": ["@op"] },
+          "then": {
+            "type": "object",
+            "properties": {
+              "voice_type": { "type": "string", "enum": ["clone", "acoustic_design", "prescribed_profile"] },
+              "clone_consent_hash": { "type": "string", "format": "sha256", "description": "Required if voice_type == 'clone'. Cryptographic proof of consent." },
+              "acoustic_design": {
+                "type": "object",
+                "description": "Non-human/mythic timbre synthesis parameters.",
+                "properties": {
+                  "base_timbre": { "type": "string", "enum": ["baritone", "alto", "neutral", "ageless", "elemental"] },
+                  "harmonic_layers": { "type": "integer", "minimum": 0, "maximum": 4, "default": 1 },
+                  "sub_bass_resonance": { "type": "number", "minimum": 0, "maximum": 1, "default": 0 },
+                  "breath_modulation": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.3 },
+                  "spectral_filters": { "type": "array", "items": { "type": "string", "enum": ["stone_friction", "avian_chirp", "aquatic_echo", "ethereal_choir", "mechanical_hum", "none"] } }
+                }
+              },
+              "prosody_settings": {
+                "type": "object",
+                "properties": {
+                  "pitch_variation": { "type": "number", "minimum": 0.5, "maximum": 2.0, "default": 1.0 },
+                  "tempo_multiplier": { "type": "number", "minimum": 0.6, "maximum": 1.8, "default": 1.0 },
+                  "emotional_smoothing": { "type": "boolean", "default": true }
+                }
+              }
+            },
+            "required": ["voice_type"]
+          }
+        },
+        {
+          "if": { "properties": { "@op": { "const": "start_render" } }, "required": ["@op"] },
+          "then": {
+            "type": "object",
+            "properties": {
+              "resolution": { "type": "string", "enum": ["720p", "1080p", "4K"], "default": "1080p" },
+              "fps": { "type": "integer", "enum": [24, 30, 60], "default": 30 },
+              "render_quality": { "type": "string", "enum": ["fast_preview", "balanced", "cinematic_high"], "default": "balanced" },
+              "gpu_preference": { "type": "string", "enum": ["auto", "cuda", "metal", "webgl_fallback"], "default": "auto" },
+              "cache_checkpoint": { "type": "boolean", "default": true, "description": "Enables resume-on-failure for long renders." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "@op": { "const": "export_video" } }, "required": ["@op"] },
+          "then": {
+            "type": "object",
+            "properties": {
+              "container_format": { "type": "string", "enum": ["mp4_h264", "mp4_h265", "webm_vp9"], "default": "mp4_h265" },
+              "accessibility_tracks": {
+                "type": "object",
+                "properties": {
+                  "captions_srt": { "type": "boolean", "default": true },
+                  "captions_vtt": { "type": "boolean", "default": true },
+                  "audio_description": { "type": "boolean", "default": false },
+                  "wcag_compliance_level": { "type": "string", "enum": ["A", "AA", "AAA"], "default": "AA" }
+                }
+              },
+              "provenance": {
+                "type": "object",
+                "properties": {
+                  "embed_c2pa": { "type": "boolean", "default": true },
+                  "visible_watermark": { "type": "boolean", "default": true },
+                  "accuracy_legend": { "type": "boolean", "default": true }
+                }
+              }
+            },
+            "required": ["container_format"]
+          }
+        }
+      ]
+    }
+  },
+  "required": ["metadata", "operation", "parameters"],
+  "additionalProperties": false
+}
+```
+
+</details>
+
+---
+
+## 🛠️ CLI Usage Patterns
+
+The schema is designed to work with standard pipeline runners, `jq`, and programmatic SDKs.
+
+### 1. Command Construction Example
+```bash
+# Save payload to aethel_job.json
+cat > aethel_job.json << 'EOF'
+{
+  "meta": {
+    "project_id": "550e8400-e29b-41d4-a716-446655440000",
+    "execution_mode": "async",
+    "priority": "high"
+  },
+  "operation": "configure_avatar",
+  "parameters": {
+    "@op": "configure_avatar",
+    "base_model_id": "AF-DRAGON_04",
+    "anthropomorphic_mapping": {
+      "primary_features": ["scales", "wing_flutter_sync"],
+      "limb_adaptation": "humanoid_bilateral",
+      "facial_rig_tolerance": 0.88,
+      "expressive_overrides": { "eye_glow_intensity": 0.6 }
+    },
+    "style_profile": "mythic_anime"
+  }
+}
+EOF
+
+# Validate & Submit
+aethelcli validate aethel_job.json && aethelcli submit aethel_job.json
+```
+
+### 2. Batch Pipeline Orchestration
+Chain operations using `jq` for automated rendering queues:
+```bash
+# 1. Init → 2. Script → 3. Avatar → 4. Render → 5. Export
+for op in init_project generate_script configure_avatar start_render export_video; do
+  jq --arg op "$op" '.operation = $op | .parameters["@op"] = $op' template.json > step_$op.json
+  aethelcli run step_$op.json --wait
+done
+```
+
+---
+
+## 📊 Key Schema Design Decisions
+
+| Feature | Schema Implementation | Rationale |
+|---------|----------------------|-----------|
+| **Operation Routing** | `parameters.oneOf` with `if/then` conditions | Enables strict type-validation per pipeline stage while keeping a single unified payload format. |
+| **Anthropomorphic Mapping** | `limb_adaptation`, `facial_rig_tolerance`, `expressive_overrides` | Explicitly handles non-human topology constraints while preserving lip-sync and emotional articulation. |
+| **Acoustic Design** | `harmonic_layers`, `sub_bass_resonance`, `spectral_filters` | Provides programmatic control over mythological/non-human timbres beyond standard TTS. |
+| **Compliance & Provenance** | `clone_consent_hash` (SHA-256), `embed_c2pa`, `accuracy_legend` | Enforces legal/ethical gates at the CLI level, not just the UI. |
+| **Accessibility** | `wcag_compliance_level`, `audio_description`, `captions_vtt` | Bakes WCAG 2.2 standards into the export pipeline by default. |
+| **Execution Modes** | `sync`, `async`, `dry_run` | Supports CI/CD testing, heavy cloud GPU queues, and rapid local validation. |
+
+---
+
+## 🔌 Integration Notes for Developers
+
+1. **Validation**: Use `ajv` (JavaScript), `pydantic`/`jsonschema` (Python), or `go-jsonschema` for strict payload validation before CLI dispatch.
+2. **Async Jobs**: When `execution_mode: "async"` is set, the CLI returns a `job_id`. Poll via `aethelcli status <job_id>` or listen to webhook events.
+3. **Local Fallbacks**: Set `gpu_preference: "webgl_fallback"` for machine learning inference on edge devices (renders at lower fidelity but enables offline preview).
+4. **C2PA Signing**: Requires the `@c2pa/cli` toolkit installed. The pipeline will reject `export_video` if `embed_c2pa: true` but signing keys are missing.
+
+Would you like a **Python/Node.js SDK wrapper** for this schema, a **webhook event specification** for async job monitoring, or a **CI/CD GitHub Actions template** that automates the pipeline?
