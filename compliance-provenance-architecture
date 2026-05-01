@@ -1,0 +1,220 @@
+# 🛡️ AethelFrame Compliance & Provenance Architecture
+
+This system embeds **cryptographic trust, legal rights management, accuracy auditing, and accessibility standards** directly into the rendering pipeline. Compliance is not a post-processing step—it's a **gate-enforced layer** that blocks non-conforming payloads before GPU allocation.
+
+---
+
+## 🧱 Four Pillars of Enforcement
+
+| Pillar | Mechanism | Enforcement Point | Failure Action |
+|--------|-----------|-------------------|----------------|
+| **C2PA Provenance** | Cryptographic manifest embedding | `export_video` | Blocks export if `embed_c2pa: true` but signing keys are missing |
+| **Consent & Rights** | SHA-256 consent hashes + license checksums | `synthesize_voice` / `compose_scene` | Rejects job if `clone_consent_hash` is invalid or source licenses are expired |
+| **Accuracy & Hedging** | Story Graph `[Verified]/[Speculative]` ratio analysis | `generate_script` | Auto-injects disclaimers or downgrades tone if precision threshold fails |
+| **Accessibility** | WCAG 2.2 caption/AD track generation + contrast validation | `export_video` | Fails CI if `wcag_compliance_level` target isn't met |
+
+---
+
+<details>
+<summary>📜 Full C2PA Manifest Structure (Draft v2 Alignment)</summary>
+
+```json
+{
+  "c2pa_manifest": {
+    "claim_generator": "AethelFrame CLI v2.4.1",
+    "claim_generator_info": {
+      "pipeline_version": "graph-v3-acoustic-v7",
+      "render_engine": "NeRF-4K-v2",
+      "voice_model": "acoustic_design_tts"
+    },
+    "assertions": [
+      {
+        "label": "aethel.story_graph",
+        "data": {
+          "subject_name": "Odin's Raven",
+          "source_urls": ["https://en.wikipedia.org/wiki/Huginn_and_Muninn"],
+          "accuracy_distribution": { "verified": 0.72, "speculative": 0.28 },
+          "disclaimer_applied": true
+        }
+      },
+      {
+        "label": "aethel.voice_consent",
+        "data": {
+          "consent_hash": "sha256:8f3a9c2d1e4b7f6a9b2c4d5e6f7a8b9c...",
+          "granted_by": "estate_executor_id_442",
+          "expiration": "2028-12-31",
+          "scope": "non_commercial_educational"
+        }
+      },
+      {
+        "label": "stds.schema.video",
+        "data": {
+          "format": "mp4_h265",
+          "resolution": "1080p",
+          "duration_sec": 180,
+          "accessibility_tracks": ["vtt", "srt", "audio_description"]
+        }
+      }
+    ],
+    "signature": {
+      "alg": "Ed25519",
+      "issuer": "urn:aethelframe:signing:prod",
+      "cert_url": "https://trust.aethel.io/certs/aethel-prov-2026.pem",
+      "timestamp": "2026-04-30T14:42:15Z"
+    }
+  }
+}
+```
+
+</details>
+
+---
+
+## 🔒 Consent & Rights Gateway
+
+AI voice cloning and archival media usage require verifiable legal clearance. The pipeline enforces this via cryptographic hashing and license validation.
+
+### 1. Consent Hash Generation
+```bash
+# CLI: Generate SHA-256 consent proof from signed legal document
+aethelcli consent generate --doc "voice_release_signed.pdf" --subject "actor_uuid_123"
+# Output: e3b0c44298fc1c14381137929904c54b5a98c12d4f6e8a...
+```
+
+### 2. Runtime Validation (SDK)
+```python
+from hashlib import sha256
+from aethel_sdk.compliance import ConsentValidator
+
+validator = ConsentValidator()
+# Validates hash matches stored registry, checks expiration & scope
+is_valid = validator.verify(
+    consent_hash="sha256:e3b0c44298fc...",
+    required_scope="educational",
+    current_date="2026-04-30"
+)
+if not is_valid:
+    raise ComplianceError("Voice cloning consent expired or scope mismatch")
+```
+
+### 3. Archival License Check
+The `compose_scene` stage calculates SHA-256 hashes of all ingested archival images/documents and cross-references them against a **trusted rights registry** (local JSON or remote API). Unlicensed assets trigger `fallback_broll: true` and log a compliance warning.
+
+---
+
+## 🎯 Accuracy & Auto-Hedging Engine
+
+The Story Graph's `[Verified]` / `[Speculative]` node distribution directly controls narrative tone and C2PA disclaimer injection.
+
+### Accuracy Threshold Matrix
+| Speculative Ratio | Pipeline Behavior | C2PA Disclaimer |
+|-------------------|-------------------|-----------------|
+| $\le 0.15$ | `accuracy_mode: verified_only` | None required |
+| $0.16 \text{--} 0.45$ | `accuracy_mode: speculative_inline` | `[Speculative Interpretation]` watermark + narrator hedging |
+| $\ge 0.46$ | `accuracy_mode: creative_fiction` | `[Mythic/Adapted Narrative]` persistent badge |
+
+### SDK Hedging Injection
+```python
+def apply_accuracy_hedging(script_text: str, speculative_ratio: float) -> str:
+    if speculative_ratio > 0.45:
+        prefix = "⚠️ Note: This narrative draws from adapted mythological sources.\n"
+        return prefix + replace_late_claims_with_hedges(script_text)
+    return script_text
+```
+
+---
+
+## ♿ Accessibility & WCAG 2.2 Gate
+
+The `export_video` stage enforces accessibility compliance before artifact finalization.
+
+| Check | Tool/Validator | Pass Criteria |
+|-------|----------------|---------------|
+| **Caption Sync** | `webvtt-validator` | $< 150\text{ms}$ drift from audio peaks |
+| **Audio Description** | `ad_track_analyzer` | Covers $100\%$ of silent narrative gaps |
+| **Text Contrast** | `axe-core` (headless) | $\ge 4.5:1$ ratio for legends/disclaimers |
+| **Safe Zone** | `subtitle_layout_checker` | Within $90\%$ title-safe region |
+
+**CI Enforcement:**
+```yaml
+- name: 🧪 WCAG Compliance Check
+  run: |
+    pip install aethel-compliance-tools
+    aethelcompliance wcag --input ./aethel_output/render.mp4 --level AA
+```
+
+---
+
+## 🚪 CI/CD Compliance Gates
+
+Add these steps to your GitHub Actions workflow to block non-compliant renders before GPU consumption.
+
+```yaml
+# .github/workflows/aethel-compliance.yml
+jobs:
+  compliance-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install aethel-sdk aethel-compliance-tools
+
+      - name: 🔍 Validate Consent & Licenses
+        run: aethelcompliance rights scan --payload config/pipeline.json --registry ./rights_registry.json
+
+      - name: 📊 Accuracy Threshold Check
+        run: |
+          aethelcompliance accuracy check --graph data/story_graph.json
+          # Fails if speculative_ratio > threshold defined in policy.json
+
+      - name: 📜 C2PA Manifest Pre-Validation
+        run: aethelcompliance c2pa verify --dry-run --template config/c2pa_policy.json
+```
+
+---
+
+## 🔎 Verification Workflow (Downstream Consumers)
+
+Museums, publishers, or educators can verify AethelFrame outputs without running the pipeline.
+
+### CLI Verification
+```bash
+# Verify embedded C2PA manifest & consent hashes
+aethelcli verify render_final.mp4 --verbose
+```
+
+**Output:**
+```
+✅ C2PA Manifest: Valid (Ed25519 signature)
+✅ Consent Hash: Matches registry (expires 2028-12-31)
+⚠️ Accuracy: 34% speculative → [Speculative Inline] disclaimer applied
+✅ Accessibility: WCAG AA compliant (captions synced, AD track present)
+📄 Provenance: 3 verified sources, 2 mythic adaptations
+```
+
+### SDK Verification (Python)
+```python
+from aethel_sdk.compliance import ProvenanceVerifier
+
+verifier = ProvenanceVerifier()
+report = verifier.scan("render_final.mp4")
+print(report.summary())
+if not report.is_compliant(policy_level="academic"):
+    raise RuntimeError("Artifact fails academic provenance standards")
+```
+
+---
+
+## 📊 Enterprise Best Practices
+
+| Practice | Implementation |
+|----------|----------------|
+| **Key Rotation** | C2PA signing keys rotate quarterly. Old manifests remain verifiable via archived public keys. |
+| **Immutable Audit Logs** | All compliance decisions are hashed and appended to a Merkle tree. Queryable via `aethelcli audit --job-id <id>`. |
+| **Policy-as-Code** | Store compliance rules in `config/compliance_policy.yaml`. CI gates fail if payload deviates. |
+| **Right-to-Be-Forgotten** | `clone_consent_hash` registry supports revocation tags. Revoked hashes auto-block future renders using that voice profile. |
+| **Regional Compliance** | Toggle `policy_region` in CI (`EU`, `US`, `APAC`) to adjust GDPR/Fair Use/WCAG strictness automatically. |
+
+---
+
