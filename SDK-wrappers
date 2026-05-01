@@ -303,4 +303,4 @@ runPipeline();
 2. **Streaming**: For `sync` mode, the SDK can be extended with `httpx.stream()` / `ReadableStream` to receive frame-by-frame progress or chunked audio previews.
 3. **CI/CD**: Use `dry_run` mode in GitHub Actions to validate JSON payloads before deploying render jobs to production queues.
 
-Would you like a **GitHub Actions CI/CD template** that uses these SDKs to automate render pipelines, or a **webhook event specification** for tracking async job states?
+
