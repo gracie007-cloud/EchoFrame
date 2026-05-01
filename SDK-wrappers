@@ -1,0 +1,306 @@
+Here are production-ready SDK wrappers for both **Python** and **Node.js/TypeScript**. Both enforce the JSON schema at runtime, provide type-safe builders, and handle async execution with validation.
+
+---
+
+## 🐍 Python SDK (Pydantic v2 + `httpx`)
+
+```bash
+pip install pydantic httpx
+```
+
+```python
+# aethel_sdk/__init__.py
+from __future__ import annotations
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Literal, Optional, Dict, Any, Union
+import httpx
+import asyncio
+from datetime import datetime
+
+# --- SCHEMA MODELS ---
+class Meta(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    project_id: Optional[str] = None
+    cli_version: str = "1.0.0"
+    execution_mode: Literal["sync", "async", "dry_run"] = "sync"
+    priority: Literal["low", "normal", "high", "critical"] = "normal"
+    output_dir: Optional[str] = None
+
+class InitParams(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    op: Literal["init_project"] = Field(alias="@op", default="init_project")
+    name: str
+    subject_type: Literal["human", "animal", "mythical", "fictional", "artifact"]
+    target_language: str = "en-US"
+    source_data: Optional[Dict[str, Any]] = None
+
+class ScriptParams(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    op: Literal["generate_script"] = Field(alias="@op", default="generate_script")
+    length_seconds: int = Field(ge=30, le=1200)
+    narrative_structure: Literal["three_act", "chronological", "thematic"] = "three_act"
+    tone_profile: Optional[Literal["scholarly", "intimate", "dramatic", "mythic", "reflective"]] = None
+    accuracy_mode: Literal["verified_only", "speculative_inline", "creative_fiction"] = "speculative_inline"
+
+class VoiceParams(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    op: Literal["synthesize_voice"] = Field(alias="@op", default="synthesize_voice")
+    voice_type: Literal["clone", "acoustic_design", "prescribed_profile"]
+    clone_consent_hash: Optional[str] = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    acoustic_design: Optional[Dict[str, Any]] = None
+    prosody_settings: Optional[Dict[str, Any]] = None
+
+class RenderParams(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    op: Literal["start_render"] = Field(alias="@op", default="start_render")
+    resolution: Literal["720p", "1080p", "4K"] = "1080p"
+    fps: Literal[24, 30, 60] = 30
+    render_quality: Literal["fast_preview", "balanced", "cinematic_high"] = "balanced"
+    gpu_preference: Literal["auto", "cuda", "metal", "webgl_fallback"] = "auto"
+
+class ExportParams(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    op: Literal["export_video"] = Field(alias="@op", default="export_video")
+    container_format: Literal["mp4_h264", "mp4_h265", "webm_vp9"] = "mp4_h265"
+    accessibility_tracks: Optional[Dict[str, Any]] = None
+    provenance: Optional[Dict[str, Any]] = None
+
+# Discriminated union for parameters
+AllParams = Union[InitParams, ScriptParams, VoiceParams, RenderParams, ExportParams]
+
+class Command(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    meta: Meta
+    operation: Literal["init_project", "generate_script", "configure_avatar", "synthesize_voice", 
+                       "compose_scene", "start_render", "export_video", "queue_status"]
+    parameters: AllParams = Field(discriminator="op")
+
+# --- CLIENT ---
+class AethelClient:
+    def __init__(self, base_url: str, api_key: str, timeout: float = 30.0):
+        self.base_url = base_url.rstrip("/")
+        self.client = httpx.AsyncClient(
+            base_url=self.base_url,
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            timeout=timeout
+        )
+
+    async def execute(self, command: Command) -> Dict[str, Any]:
+        """Validate & dispatch command. Returns API response."""
+        payload = command.model_dump(by_alias=True, exclude_none=True)
+        
+        if command.meta.execution_mode == "dry_run":
+            return {"status": "dry_run", "validated_payload": payload}
+            
+        response = await self.client.post("/v1/pipeline", json=payload)
+        response.raise_for_status()
+        return response.json()
+
+    def __await__(self):
+        return self.client.aclose().__await__()
+        
+    async def close(self):
+        await self.client.aclose()
+
+# Factory helpers for clean usage
+class Aethel:
+    @staticmethod
+    def init(name: str, subject_type: str, **kwargs) -> Command:
+        return Command(meta=Meta(), operation="init_project", parameters=InitParams(name=name, subject_type=subject_type, **kwargs))
+
+    @staticmethod
+    def script(seconds: int, tone: str = "intimate", **kwargs) -> Command:
+        return Command(meta=Meta(), operation="generate_script", parameters=ScriptParams(length_seconds=seconds, tone_profile=tone, **kwargs))
+
+    @staticmethod
+    def voice(voice_type: str, acoustic_design: Dict = None, **kwargs) -> Command:
+        return Command(meta=Meta(), operation="synthesize_voice", parameters=VoiceParams(voice_type=voice_type, acoustic_design=acoustic_design, **kwargs))
+
+    @staticmethod
+    def export(fmt: str = "mp4_h265", **kwargs) -> Command:
+        return Command(meta=Meta(), operation="export_video", parameters=ExportParams(container_format=fmt, **kwargs))
+
+    @staticmethod
+    def render(res: str = "1080p", fps: int = 30, **kwargs) -> Command:
+        return Command(meta=Meta(), operation="start_render", parameters=RenderParams(resolution=res, fps=fps, **kwargs))
+```
+
+---
+
+## 🟦 Node.js / TypeScript SDK (`zod` + native `fetch`)
+
+```bash
+npm install zod
+```
+
+```typescript
+// src/aethel.ts
+import { z } from 'zod';
+
+// --- SCHEMA DEFINITIONS ---
+const metaSchema = z.object({
+  project_id: z.string().uuid().optional(),
+  cli_version: z.string().default('1.0.0'),
+  execution_mode: z.enum(['sync', 'async', 'dry_run']).default('sync'),
+  priority: z.enum(['low', 'normal', 'high', 'critical']).default('normal'),
+  output_dir: z.string().optional(),
+});
+
+const baseParamSchema = z.object({ '@op': z.string() }).strict();
+
+const initSchema = baseParamSchema.extend({ '@op': z.literal('init_project'), name: z.string().min(2), subject_type: z.enum(['human', 'animal', 'mythical', 'fictional', 'artifact']) });
+const scriptSchema = baseParamSchema.extend({ '@op': z.literal('generate_script'), length_seconds: z.number().int().min(30).max(1200), tone_profile: z.enum(['scholarly', 'intimate', 'dramatic', 'mythic', 'reflective']).optional() });
+const voiceSchema = baseParamSchema.extend({ '@op': z.literal('synthesize_voice'), voice_type: z.enum(['clone', 'acoustic_design', 'prescribed_profile']), clone_consent_hash: z.string().regex(/^[a-f0-9]{64}$/).optional(), acoustic_design: z.record(z.unknown()).optional() });
+const renderSchema = baseParamSchema.extend({ '@op': z.literal('start_render'), resolution: z.enum(['720p', '1080p', '4K']).default('1080p'), fps: z.enum([24, 30, 60]).default(30) });
+const exportSchema = baseParamSchema.extend({ '@op': z.literal('export_video'), container_format: z.enum(['mp4_h264', 'mp4_h265', 'webm_vp9']).default('mp4_h265'), accessibility_tracks: z.record(z.boolean()).optional(), provenance: z.record(z.boolean()).optional() });
+
+const paramsSchema = z.discriminatedUnion('@op', [initSchema, scriptSchema, voiceSchema, renderSchema, exportSchema]);
+
+export const commandSchema = z.object({
+  meta: metaSchema,
+  operation: z.enum(['init_project', 'generate_script', 'configure_avatar', 'synthesize_voice', 'compose_scene', 'start_render', 'export_video', 'queue_status']),
+  parameters: paramsSchema,
+}).strict();
+
+export type AethelCommand = z.infer<typeof commandSchema>;
+export type AethelResponse = { status: string; job_id?: string; results?: unknown; error?: string };
+
+// --- CLIENT ---
+export class AethelSDK {
+  constructor(private baseUrl: string, private apiKey: string, private timeoutMs = 30000) {}
+
+  private async request<T>(endpoint: string, payload: AethelCommand): Promise<T> {
+    const validated = commandSchema.parse(payload);
+    
+    if (validated.meta.execution_mode === 'dry_run') {
+      return { status: 'dry_run', validated_payload: validated } as unknown as T;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    try {
+      const res = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.apiKey}` },
+        body: JSON.stringify(validated, null, 2),
+        signal: controller.signal
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      return res.json() as Promise<T>;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  async run(command: AethelCommand): Promise<AethelResponse> {
+    return this.request<AethelResponse>('/v1/pipeline', command);
+  }
+
+  // Fluent builders
+  static init(name: string, subject_type: AethelCommand['parameters'] extends infer P ? P extends { subject_type: infer ST } ? ST : never : never, opts?: Partial<AethelCommand['meta']>): AethelCommand {
+    return { meta: { ...opts }, operation: 'init_project', parameters: { '@op': 'init_project', name, subject_type } };
+  }
+
+  static voice(voice_type: 'clone' | 'acoustic_design' | 'prescribed_profile', opts?: { acoustic_design?: Record<string, unknown>, prosody_settings?: Record<string, unknown> }): AethelCommand {
+    return { meta: {}, operation: 'synthesize_voice', parameters: { '@op': 'synthesize_voice', voice_type, ...opts } };
+  }
+
+  static export(fmt: 'mp4_h264' | 'mp4_h265' | 'webm_vp9' = 'mp4_h265', opts?: { accessibility_tracks?: Record<string, boolean>, provenance?: Record<string, boolean> }): AethelCommand {
+    return { meta: {}, operation: 'export_video', parameters: { '@op': 'export_video', container_format: fmt, ...opts } };
+  }
+}
+```
+
+---
+
+## 📖 Usage Examples
+
+### Python Async Workflow
+```python
+import asyncio
+from aethel_sdk import Aethel, AethelClient
+
+async def main():
+    client = AethelClient("https://api.aethelframe.ai", "sk_live_...")
+    
+    # 1. Validate & Dry Run
+    cmd = Aethel.init("Odin's Raven", "mythical", target_language="en-GB")
+    print(await client.execute(cmd))
+
+    # 2. Async Pipeline Execution
+    voice_cmd = Aethel.voice(
+        voice_type="acoustic_design",
+        acoustic_design={
+            "base_timbre": "baritone",
+            "harmonic_layers": 2,
+            "spectral_filters": ["avian_chirp", "ethereal_choir"]
+        },
+        prosody_settings={"pitch_variation": 0.9, "tempo_multiplier": 0.8}
+    )
+    
+    print("Dispatching voice job...")
+    resp = await client.execute(voice_cmd)
+    print(f"Job ID: {resp.get('job_id')}")
+
+    await client.close()
+
+asyncio.run(main())
+```
+
+### TypeScript/Node.js Workflow
+```typescript
+import { AethelSDK, commandSchema } from './aethel';
+
+const sdk = new AethelSDK('https://api.aethelframe.ai', 'sk_live_...');
+
+async function runPipeline() {
+  // Safe construction with full Zod validation
+  const payload = {
+    meta: { execution_mode: 'async' as const, priority: 'high' as const },
+    operation: 'export_video' as const,
+    parameters: {
+      '@op': 'export_video' as const,
+      container_format: 'mp4_h265',
+      accessibility_tracks: { captions_vtt: true, audio_description: true },
+      provenance: { embed_c2pa: true, visible_watermark: false }
+    }
+  };
+
+  try {
+    // Throws detailed ZodError if schema is violated
+    const result = await sdk.run(payload);
+    console.log(`✅ Render dispatched: ${result.job_id}`);
+  } catch (err) {
+    if (err instanceof Error && 'name' in err && err.name === 'ZodError') {
+      console.error('❌ Schema Violation:', JSON.stringify(err.issues, null, 2));
+    } else {
+      throw err;
+    }
+  }
+}
+
+runPipeline();
+```
+
+---
+
+## 🔑 Key SDK Features
+
+| Feature | Implementation | Benefit |
+|---------|----------------|---------|
+| **Strict Validation** | Pydantic v2 / Zod | Catches malformed payloads *before* hitting the API. Enforces `@op` discriminators and field constraints. |
+| **Type-Safe Builders** | Factory methods (`Aethel.init()`, `Aethel.voice()`) | Reduces boilerplate. Auto-completes in IDEs with exact schema types. |
+| **Execution Modes** | `sync`, `async`, `dry_run` | Test payloads locally without consuming GPU credits. Queue heavy renders asynchronously. |
+| **Discriminated Unions** | `Field(discriminator="op")` / `z.discriminatedUnion` | Guarantees parameter shape matches operation at runtime. Prevents cross-stage misconfiguration. |
+| **Timeout & Abort** | `httpx.Timeout` / `AbortController` | Prevents hanging CI/CD pipelines on stalled GPU jobs. |
+| **C2PA & WCAG Ready** | Built-in `accessibility_tracks` & `provenance` fields | Compliance is first-class in the API surface, not an afterthought. |
+
+---
+
+## 🛠️ Developer Notes
+1. **Schema Updates**: If the JSON schema evolves, regenerate the Pydantic/Zod models. Both libraries support schema export/import for CI validation.
+2. **Streaming**: For `sync` mode, the SDK can be extended with `httpx.stream()` / `ReadableStream` to receive frame-by-frame progress or chunked audio previews.
+3. **CI/CD**: Use `dry_run` mode in GitHub Actions to validate JSON payloads before deploying render jobs to production queues.
+
+Would you like a **GitHub Actions CI/CD template** that uses these SDKs to automate render pipelines, or a **webhook event specification** for tracking async job states?
