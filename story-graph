@@ -252,9 +252,4 @@ The Story Graph's temporal nodes directly drive audio-visual synchronization:
 
 ---
 
-## 🔜 Next Steps
-Would you like:
-1. A **Story Graph NLP microservice template** (FastAPI + spaCy/NeuralCoref) that outputs the required JSON?
-2. A **Pacing Calibration Tool** that visualizes graph beats vs generated audio waveforms for manual tweaking?
-3. A **Museum/Heritage Compliance Checklist** for institutional deployment, accuracy standards, and C2PA archiving?
-Would you like the **Webhook Listener Microservice** (Node.js/Python) to bridge dispatch and finalize workflows, or a **Museum/Enterprise Compliance Checklist** for institutional deployment standards?
+
