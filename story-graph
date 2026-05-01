@@ -1,0 +1,260 @@
+# 🔄 Integrating the Story Graph with the SDK & CI/CD Pipeline
+
+This guide details how to bridge the **NLP Story Graph Engine** with the **AethelFrame SDK** and **GitHub Actions CI/CD**. It covers data flow, schema mapping, orchestration scripts, pipeline adjustments, and runtime pacing alignment.
+
+---
+
+## 🧩 1. Data Flow Architecture
+
+```mermaid
+graph LR
+  A[Raw Sources\nURLs/Text/Archives] --> B(Story Graph Engine)
+  B --> C[Structured Graph JSON\nNodes/Edges/Acts/Accuracy]
+  C --> D[SDK Payload Builder]
+  D --> E[CI/CD Dispatcher]
+  E --> F[AethelFrame API\nScript → Avatar → Voice → Render]
+  C -.-> G[Pacing & B-Roll Composer\nScene markers, IK triggers]
+```
+
+The Story Graph acts as a **deterministic pre-processor**. Its output replaces freeform prompt engineering with structured, causally-linked narrative directives that the SDK passes directly to `generate_script` and `compose_scene`.
+
+---
+
+## 📊 2. Story Graph Output Schema
+
+The NLP engine should emit this standardized JSON. It aligns with the SDK's `generate_script` and `compose_scene` parameters.
+
+```json
+{
+  "story_graph_v1": {
+    "metadata": {
+      "subject_name": "Odin's Raven",
+      "primary_sources": ["https://en.wikipedia.org/wiki/Huginn_and_Muninn", "edda_poems.txt"],
+      "extraction_timestamp": "2026-04-30T10:15:00Z"
+    },
+    "nodes": [
+      {
+        "id": "evt_01",
+        "type": "event",
+        "timestamp": "mythic_age",
+        "description": "Ravens sent across the nine realms from Hlidskjalf.",
+        "accuracy": "[Verified]",
+        "entities": ["Huginn", "Muninn", "Yggdrasil"]
+      },
+      {
+        "id": "evt_02",
+        "type": "causal_turn",
+        "description": "Loss of Muninn triggered Odin's first solitary vigil.",
+        "accuracy": "[Speculative]",
+        "emotional_weight": 0.8
+      }
+    ],
+    "narrative_arc": {
+      "act_1_setup": ["evt_01", "evt_03"],
+      "act_2_turning_point": ["evt_02"],
+      "act_3_resolution": ["evt_05", "evt_07"],
+      "pacing_beats": [
+        {"node_id": "evt_01", "duration_pct": 25, "tone": "mythic"},
+        {"node_id": "evt_02", "duration_pct": 45, "tone": "intimate"},
+        {"node_id": "evt_05", "duration_pct": 30, "tone": "reflective"}
+      ]
+    },
+    "scene_directives": {
+      "broll_markers": [
+        {"time_offset_sec": 12, "query": "ancient_norse_illustration_wide"},
+        {"time_offset_sec": 48, "query": "stormy_sky_ravens_flying"}
+      ],
+      "gesture_cues": [
+        {"node_id": "evt_02", "ik_preset": "head_lower_pause", "intensity": 0.9}
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 🛠️ 3. SDK Payload Mapping
+
+The SDK's `generate_script` and `compose_scene` stages consume this graph via structured injection.
+
+| Story Graph Field | SDK Target | Mapping Logic |
+|-------------------|------------|---------------|
+| `narrative_arc.pacing_beats` | `parameters.pacing_map` | Drives syllable-to-seconds allocation in TTS & prosody engine. |
+| `nodes[].accuracy` | `parameters.accuracy_mode` | Forces `[Verified]` nodes to literal phrasing; `[Speculative]` gets hedging language (`"Lore suggests..."`). |
+| `scene_directives.broll_markers` | `compose_scene.parameters.broll_injections` | Auto-fetches archival/media assets at exact timestamps. |
+| `scene_directives.gesture_cues` | `compose_scene.parameters.ik_triggers` | Maps to upper-body IK presets synced to audio peaks. |
+| `metadata.primary_sources` | `parameters.source_data` | Embedded in C2PA manifest for provenance tracking. |
+
+**SDK Payload Construction Example:**
+```python
+sdk_payload = {
+  "meta": {"execution_mode": "async", "priority": "high"},
+  "operation": "generate_script",
+  "parameters": {
+    "@op": "generate_script",
+    "length_seconds": graph["narrative_arc"]["total_duration_sec"] or 180,
+    "tone_profile": graph["pacing_beats"][0]["tone"],
+    "story_graph_weights": {
+      "causality_priority": 0.85,
+      "emotional_arc_weight": 0.7,
+      "historical_precision": 0.9
+    },
+    "override_prompt": f"STRUCTURE: {json.dumps(graph['narrative_arc']['act_1_setup'])} → TURN: {graph['narrative_arc']['act_2_turning_point']}",
+    "compliance_tag": "auto_hedge_speculative"
+  }
+}
+```
+
+---
+
+## 🐍 4. Bridge Script (`ci/story_graph_bridge.py`)
+
+This script sits between raw data ingestion and the SDK dispatcher. It validates the graph, applies pacing constraints, and outputs a CI-ready payload.
+
+```python
+#!/usr/bin/env python3
+# ci/story_graph_bridge.py
+import json, sys, os, httpx
+from pathlib import Path
+from pydantic import BaseModel, ValidationError
+
+GRAPH_SCHEMA_PATH = "config/story_graph_v1.schema.json"
+OUTPUT_PAYLOAD = "config/render-payload.json"
+
+class StoryGraphV1(BaseModel):
+    story_graph_v1: dict  # Replace with strict Pydantic model for prod
+
+def load_or_generate_graph() -> dict:
+    """Call Story Graph API or load cached JSON."""
+    graph_path = Path("data/story_graph.json")
+    if graph_path.exists():
+        with open(graph_path) as f: return json.load(f)
+        
+    # Fallback: Call NLP microservice
+    resp = httpx.post(os.getenv("STORY_GRAPH_API_URL"), json={"sources": ["raw_text.txt"]})
+    resp.raise_for_status()
+    graph = resp.json()
+    graph_path.write_text(json.dumps(graph, indent=2))
+    return graph
+
+def build_sdk_payload(graph: dict) -> dict:
+    """Map Story Graph to AethelFrame SDK Command."""
+    arc = graph["story_graph_v1"]["narrative_arc"]
+    beats = arc["pacing_beats"]
+    directives = graph["story_graph_v1"]["scene_directives"]
+    
+    return {
+        "meta": {"execution_mode": "async", "priority": "high"},
+        "operation": "generate_script",
+        "parameters": {
+            "@op": "generate_script",
+            "length_seconds": sum(b["duration_pct"] for b in beats) * 10,  # Scale to seconds
+            "tone_profile": beats[0]["tone"],
+            "story_graph_weights": {"causality_priority": 0.8, "emotional_arc_weight": 0.6},
+            "override_prompt": json.dumps(arc),
+            "scene_markers": directives.get("broll_markers", []),
+            "ik_triggers": directives.get("gesture_cues", [])
+        }
+    }
+
+if __name__ == "__main__":
+    try:
+        raw = load_or_generate_graph()
+        validated = StoryGraphV1.model_validate(raw)
+        payload = build_sdk_payload(validated.model_dump())
+        Path(OUTPUT_PAYLOAD).write_text(json.dumps(payload, indent=2))
+        print(f"✅ Bridge complete. Payload saved to {OUTPUT_PAYLOAD}")
+    except ValidationError as e:
+        print(f"❌ Story Graph Validation Failed:\n{e.json()}")
+        sys.exit(1)
+```
+
+---
+
+## ⚙️ 5. Updated CI/CD Workflow
+
+Add a **Graph Generation & Validation** step before SDK dispatch.
+
+```yaml
+# .github/workflows/aethel-render.yml (excerpt)
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install aethel-sdk pydantic httpx
+
+      # 🆕 STEP 1: Run/Load Story Graph
+      - name: 🧠 Generate & Validate Story Graph
+        run: python ci/story_graph_bridge.py
+        env:
+          STORY_GRAPH_API_URL: ${{ vars.STORY_GRAPH_ENDPOINT || 'http://localhost:8080/graph' }}
+
+      # ✅ STEP 2: SDK Dispatch (reads config/render-payload.json)
+      - name: 🚀 SDK Dispatch
+        id: dispatch
+        run: python ci/aethel_runner.py dispatch
+
+      # ⏳ STEP 3: Poll & Download (unchanged)
+      - name: ⏳ Monitor & Download
+        if: success() && steps.dispatch.outputs.job_id
+        run: |
+          python ci/aethel_runner.py poll
+          python ci/aethel_runner.py download
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aethel-render-${{ github.run_id }}
+          path: ./aethel_output/
+```
+
+---
+
+## 🎭 6. Runtime Pacing & Scene Alignment
+
+The Story Graph's temporal nodes directly drive audio-visual synchronization:
+
+| Graph Component | Rendering Engine Action |
+|-----------------|-------------------------|
+| **`pacing_beats[].duration_pct`** | TTS prosody engine allocates syllables proportionally. High-weight beats receive breath pauses and pitch drift. |
+| **`broll_markers[].time_offset_sec`** | Scene composer crossfades HDRI/archival B-roll at exact frame boundaries. Prevents "talking head" fatigue. |
+| **`ik_triggers[].node_id`** | Inverse Kinematics rig loads preset (`head_lower_pause`, `hand_gesture_sweep`) synced to audio RMS spikes. |
+| **`nodes[].accuracy`** | LLM script generator appends UI tags (`[Verified]` = neutral delivery, `[Speculative]` = softer cadence + subtitle disclaimer). |
+
+**Pro Tip:** Use the `story_graph_weights` object to bias generation:
+- `causality_priority: 0.9` → Strict chronological/causal chaining (academic docs)
+- `emotional_arc_weight: 0.8` → Thematic/emphasis-driven pacing (narrative/mythic)
+- `historical_precision: 0.4` → Creative liberties allowed (fictional/artistic)
+
+---
+
+## ✅ 7. Validation & Fallback Rules
+
+| Scenario | SDK/Graph Response |
+|----------|-------------------|
+| **Sparse Graph (<3 nodes)** | Falls back to `chronological` structure. Warns via CI log: `⚠️ Low node density. Using default 3-act template.` |
+| **Conflicting Timestamps** | NLP resolver sorts by `confidence_score`. SDK injects `temporal_ambiguity_markers` for narrator hedging. |
+| **Missing B-Roll Assets** | Auto-generates HDRI environment match via `style_profile`. Logs `broll_fallback: true` in C2PA metadata. |
+| **Accuracy Mode Conflict** | If `accuracy_mode: verified_only` but graph contains `[Speculative]` nodes, CI fails with: `❌ Policy violation: Unverified nodes in strict mode.` |
+
+---
+
+## 📈 Best Practices for Production
+
+1. **Version Graph Outputs:** Store `story_graph.json` in Git LFS or an artifact registry. Enables deterministic re-renders when LLM/voice models update.
+2. **Cache Heavy Extractions:** Story Graph NLP can take 10-30s. Cache by content-hash (`sha256(raw_sources)`) to skip redundant runs in CI.
+3. **Decouple Graph from Render:** In enterprise setups, run Story Graph as a nightly batch. CI/CD only consumes pre-validated `graph_vX.json`.
+4. **Monitor Drift:** Add a CI check that compares `pacing_beats[].duration_pct` vs actual `render_duration_sec`. Alert if deviation > `15%`.
+5. **C2PA Provenance:** Embed `graph_extraction_timestamp`, `source_urls`, and `node_accuracy_distribution` into the final video's manifest for academic trust.
+
+---
+
+## 🔜 Next Steps
+Would you like:
+1. A **Story Graph NLP microservice template** (FastAPI + spaCy/NeuralCoref) that outputs the required JSON?
+2. A **Pacing Calibration Tool** that visualizes graph beats vs generated audio waveforms for manual tweaking?
+3. A **Museum/Heritage Compliance Checklist** for institutional deployment, accuracy standards, and C2PA archiving?
+Would you like the **Webhook Listener Microservice** (Node.js/Python) to bridge dispatch and finalize workflows, or a **Museum/Enterprise Compliance Checklist** for institutional deployment standards?
