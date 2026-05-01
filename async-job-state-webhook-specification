@@ -1,0 +1,307 @@
+# 📡 AethelFrame Async Job State Webhook Specification
+
+This specification defines the event-driven notification layer for tracking asynchronous pipeline jobs. It aligns with **CloudEvents 1.0**, enforces cryptographic delivery security, and provides deterministic state reconciliation to replace HTTP polling in CI/CD and production environments.
+
+---
+
+## 🔄 Job State Machine & Event Taxonomy
+
+```mermaid
+stateDiagram-v2
+  [*] --> job.created
+  job.created --> job.queued
+  job.queued --> stage.started
+  stage.started --> job.progress
+  job.progress --> stage.completed
+  stage.completed --> stage.started
+  stage.completed --> job.completed
+  stage.started --> job.failed
+  job.completed --> [*]
+  job.failed --> [*]
+  job.queued --> job.cancelled
+  job.cancelled --> [*]
+  job.queued --> job.expired
+  job.expired --> [*]
+  
+  note right of job.progress
+    Throttled: max 1 event / 10s
+    Contains: current_stage, progress_pct, eta_sec
+  end note
+  
+  note right of job.failed
+    Contains: error_code, error_message, stack_trace_id, recovery_suggestion
+  end note
+```
+
+| Event Type | Trigger Condition | Data Payload Focus |
+|------------|-------------------|-------------------|
+| `job.created` | Payload validated & job ID issued | `job_id`, `project_id`, `estimated_duration_sec` |
+| `job.queued` | Job assigned to worker pool | `queue_depth`, `worker_tier`, `priority` |
+| `stage.started` | Engine enters new pipeline phase | `stage_name`, `stage_params`, `start_timestamp` |
+| `job.progress` | Throttled metric emission (max $1/10\text{s}$) | `current_stage`, `progress_pct`, `eta_sec` |
+| `stage.completed` | Pipeline phase finishes successfully | `stage_name`, `stage_duration_sec`, `output_artifacts` |
+| `job.completed` | Final artifact ready & signed | `artifacts`, `c2pa_manifest_url`, `total_duration_sec` |
+| `job.failed` | Unrecoverable error in any stage | `error_code`, `error_message`, `failed_stage`, `recovery_suggestion` |
+| `job.cancelled` | User/API revocation or TTL breach | `cancelled_by`, `reason`, `partial_artifacts` |
+| `job.expired` | Job exceeded `max_queue_wait` | `expires_at`, `cleanup_status` |
+
+---
+
+## 📦 Standard Event Envelope
+
+All webhooks follow this CloudEvents-compliant structure. The `data` object shape is polymorphic based on `type`.
+
+```json
+{
+  "specversion": "1.0",
+  "id": "evt_8f3a9c2d1e4b7f6a",
+  "type": "job.progress",
+  "source": "urn:aethelframe:pipeline:us-east-1",
+  "time": "2026-04-30T14:22:05.123Z",
+  "datacontenttype": "application/json",
+  "subject": "job/9b2c4d5e6f7a8b9c",
+  "data": {
+    "job_id": "job_9b2c4d5e6f7a8b9c",
+    "project_id": "proj_1a2b3c4d5e6f7a8b",
+    "current_stage": "synthesize_voice",
+    "progress_pct": 42.5,
+    "eta_sec": 115,
+    "worker_node": "gpu-p4d-a1",
+    "timestamp": "2026-04-30T14:22:05Z"
+  }
+}
+```
+
+<details>
+<summary>📄 Detailed Payload Schemas (Expand for Reference)</summary>
+
+### `job.completed`
+```json
+{
+  "job_id": "string",
+  "project_id": "string",
+  "final_status": "completed",
+  "total_duration_sec": 142.5,
+  "artifacts": {
+    "video_url": "https://cdn.../render.mp4",
+    "audio_stem_url": "https://cdn.../audio.wav",
+    "captions_vtt": "https://cdn.../captions.vtt",
+    "c2pa_manifest": "https://cdn.../manifest.c2pa"
+  },
+  "compliance_report": {
+    "wcag_level": "AA",
+    "accuracy_mode": "speculative_inline",
+    "consent_verified": true
+  }
+}
+```
+
+### `job.failed`
+```json
+{
+  "job_id": "string",
+  "project_id": "string",
+  "final_status": "failed",
+  "failed_stage": "render",
+  "error": {
+    "code": "RENDER_OOM",
+    "message": "VRAM exceeded 24GB limit during 4K upscaling",
+    "stack_trace_id": "trace_884a2c1b",
+    "recovery_suggestion": "Downgrade to 1080p or enable tile_rendering=true"
+  },
+  "partial_artifacts": { "script_json": "https://cdn.../draft.json" }
+}
+```
+</details>
+
+---
+
+## 🔐 Security, Idempotency & Delivery Guarantees
+
+### HTTP Headers
+| Header | Description |
+|--------|-------------|
+| `X-Aethel-Id` | Unique event ID (matches `id` in envelope) |
+| `X-Aethel-Timestamp` | Unix epoch (seconds) of generation |
+| `X-Aethel-Signature` | `v1=sha256=<hex_hmac>` |
+| `X-Aethel-Retry-Count` | Number of delivery attempts ($0 \dots 5$) |
+
+### Signature Verification Algorithm
+```text
+payload_body = raw HTTP body string (UTF-8)
+timestamp = X-Aethel-Timestamp
+secret = webhook signing secret
+
+string_to_sign = timestamp + "." + payload_body
+expected_sig = HMAC-SHA256(string_to_sign, secret)
+```
+**Replay Protection:** Reject if `|current_time - timestamp| > 300` seconds.  
+**Timing-Safe Comparison:** Always use constant-time equality for signature validation.
+
+### Delivery & Retry Policy
+| Scenario | Behavior |
+|----------|----------|
+| **Success** | `200–299` or `300–399` → Mark delivered |
+| **Client Error** | `400–499` → **Drop immediately**, log to audit trail |
+| **Server Error** | `5xx` or timeout → Exponential backoff: $1\text{m} \to 5\text{m} \to 15\text{m} \to 1\text{h} \to 6\text{h}$ |
+| **Max Retries** | 5 attempts → Move to Dead Letter Queue (DLQ) for 30 days |
+| **Idempotency** | Cache processed `X-Aethel-Id` for $24\text{h}$. Ignore duplicates. Return `200` immediately. |
+
+---
+
+## 🛠️ Consumer Implementation
+
+### Node.js / Express (TypeScript + Zod)
+```typescript
+import express, { Request, Response } from 'express';
+import crypto from 'crypto';
+import { z } from 'zod';
+
+const WEBHOOK_SECRET = process.env.AETHEL_WEBHOOK_SECRET!;
+const app = express();
+app.use(express.json({ limit: '2mb' }));
+
+// Idempotency cache (Redis/Redis-compatible recommended)
+const processedEvents = new Map<string, number>();
+
+const webhookSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  time: z.string().datetime(),
+  data: z.record(z.unknown())
+});
+
+app.post('/webhooks/aethel', async (req: Request, res: Response) => {
+  const sig = req.headers['x-aethel-signature'] as string;
+  const ts = req.headers['x-aethel-timestamp'] as string;
+  const body = JSON.stringify(req.body);
+
+  // 1. Verify Timing
+  if (Math.abs(Date.now() / 1000 - Number(ts)) > 300) {
+    return res.status(400).json({ error: 'Timestamp expired' });
+  }
+
+  // 2. Verify Signature
+  const expected = `v1=sha256=${crypto.createHmac('sha256', WEBHOOK_SECRET)
+    .update(`${ts}.${body}`).digest('hex')}`;
+  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+    return res.status(401).json({ error: 'Invalid signature' });
+  }
+
+  // 3. Validate Schema & Idempotency
+  const event = webhookSchema.parse(req.body);
+  if (processedEvents.has(event.id)) return res.status(200).end();
+  processedEvents.set(event.id, Date.now());
+
+  // 4. Route Event
+  try {
+    switch (event.type) {
+      case 'job.completed':
+        await handleJobComplete(event.data);
+        break;
+      case 'job.failed':
+        await handleJobFailure(event.data);
+        break;
+      case 'job.progress':
+        // Optional: Update UI/DB, do not block response
+        console.log(`Progress: ${event.data.progress_pct}%`);
+        break;
+    }
+    res.status(200).end();
+  } catch (err) {
+    // Critical consumer error → let retry happen
+    console.error('Consumer handler failed:', err);
+    res.status(500).end();
+  }
+});
+```
+
+### Python / FastAPI (Pydantic v2)
+```python
+from fastapi import FastAPI, Request, Header, HTTPException
+import hmac, hashlib, time, os
+from pydantic import BaseModel
+
+app = FastAPI()
+SECRET = os.getenv("AETHEL_WEBHOOK_SECRET")
+
+class WebhookEvent(BaseModel):
+    id: str
+    type: str
+    time: str
+    data: dict
+
+@app.post("/webhooks/aethel")
+async def handle_webhook(req: Request, x_aethel_timestamp: str = Header(...), x_aethel_signature: str = Header(...)):
+    body = await req.body()
+    ts = x_aethel_timestamp.decode()
+    if abs(time.time() - float(ts)) > 300:
+        raise HTTPException(400, "Expired timestamp")
+        
+    msg = f"{ts}.{body.decode()}"
+    expected = f"v1=sha256={hmac.new(SECRET.encode(), msg.encode(), hashlib.sha256).hexdigest()}"
+    if not hmac.compare_digest(x_aethel_signature, expected):
+        raise HTTPException(401, "Invalid signature")
+        
+    event = WebhookEvent.model_validate_json(body)
+    # Idempotency check omitted for brevity (use Redis/DB)
+    
+    if event.type == "job.completed":
+        await process_completion(event.data)
+    elif event.type == "job.failed":
+        await process_failure(event.data)
+        
+    return {"status": "received"}
+```
+
+---
+
+## 🔄 CI/CD Integration Strategy
+
+### Webhook vs. Polling Fallback
+| Mode | Use Case | SDK Behavior |
+|------|----------|--------------|
+| **Webhook-Driven** | Production, high-volume, long renders | `dispatch` saves `job_id` → exits `200`. External listener triggers `repository_dispatch` to run `download` step. |
+| **Polling Fallback** | CI/CD runners, low-volume, <4h renders | SDK `poll()` method respects `X-Aethel-Id` deduplication. Retries on `5xx` with exponential backoff. |
+| **Hybrid** | Enterprise pipelines | Dispatch → Polls for $30\text{min}$ → If not complete, unsubscribes poller & waits for webhook. |
+
+### GitHub Actions Hybrid Pattern
+```yaml
+# dispatch.yml
+- name: Start Render
+  run: python runner.py dispatch
+
+# finalize.yml (triggered by webhook listener via repository_dispatch)
+on:
+  repository_dispatch:
+    types: [aethel_job_completed]
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - run: python runner.py download --job-id ${{ github.event.client_payload.job_id }}
+```
+
+---
+
+## 🧪 Testing & Debugging
+
+| Tool | Command / Endpoint |
+|------|-------------------|
+| **Local Tunnel** | `ngrok http 3000` → Register URL in Dashboard |
+| **Mock Dispatch** | `aethelcli webhook test --url https://your-domain.com/webhook --event job.completed` |
+| **Signature Tester** | `aethelcli webhook verify --payload event.json --secret <key>` |
+| **DLQ Inspection** | `GET /v1/admin/webhooks/dlq` (Requires `admin` scope) |
+
+---
+
+## 🔍 Best Practices for Integrators
+
+1. **Return `200` Fast:** Process asynchronously. Long synchronous handlers trigger retries.
+2. **Filter Subscriptions:** Scope webhooks to `job.completed` & `job.failed`. Ignore `job.progress` unless building live dashboards.
+3. **State Reconciliation:** On startup, call `GET /v1/jobs/:id/status` to resolve any jobs that may have completed during listener downtime.
+4. **Rotate Secrets Quarterly:** Old signatures remain valid for a $24\text{h}$ overlap window. Update environment variables atomically.
+5. **Monitor DLQ Depth:** Alert if $> 50$ events accumulate. Indicates persistent consumer errors or secret mismatch.
+
+---
+
