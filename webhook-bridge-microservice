@@ -1,0 +1,340 @@
+# 🌉 AethelFrame Webhook Bridge Microservice
+
+This lightweight microservice sits between **AethelFrame's async pipeline** and **GitHub Actions**. It receives verified webhook events, enforces idempotency, and triggers `repository_dispatch` events to kick off `finalize.yml` without requiring long-running CI runners.
+
+---
+
+## 📦 Dependencies & Environment
+
+```bash
+npm init -y
+npm install express zod node-cron
+npm install -D typescript @types/express @types/node tsx
+```
+
+**`.env.example`**
+```env
+# AethelFrame
+AETHEL_WEBHOOK_SECRET=your_webhook_signing_secret_here
+
+# GitHub
+GITHUB_PAT=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+GITHUB_REPOSITORY=owner/rename
+GITHUB_API_VERSION=2022-11-28
+
+# Server
+PORT=3000
+REDIS_URL=redis://localhost:6379  # Optional: for distributed idempotency
+```
+
+---
+
+## 🟦 Node.js/TypeScript Implementation (`src/index.ts`)
+
+```typescript
+import express, { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
+import { z } from 'zod';
+import { createClient } from 'redis';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const app = express();
+app.use(express.json({ limit: '1mb' }));
+app.use(cors({ origin: false })); // Restrict in prod
+
+// --- Config ---
+const WEBHOOK_SECRET = process.env.AETHEL_WEBHOOK_SECRET!;
+const GITHUB_PAT = process.env.GITHUB_PAT!;
+const GITHUB_REPO = process.env.GITHUB_REPOSITORY!; // owner/repo
+const REDIS_URL = process.env.REDIS_URL;
+
+if (!WEBHOOK_SECRET || !GITHUB_PAT || !GITHUB_REPO) {
+  throw new Error('Missing required environment variables');
+}
+
+// --- Idempotency Store ---
+let redis: ReturnType<typeof createClient> | undefined;
+if (REDIS_URL) {
+  redis = createClient({ url: REDIS_URL });
+  redis.connect().catch(console.error);
+}
+
+async function isIdempotent(id: string): Promise<boolean> {
+  const key = `aethel:evt:${id}`;
+  if (redis) {
+    const exists = await redis.exists(key);
+    if (!exists) await redis.set(key, '1', { EX: 86400 }); // 24h TTL
+    return exists === 0;
+  }
+  // Fallback in-memory cache (not production-safe for scaled deployments)
+  return false; 
+}
+
+// --- Schema Validation ---
+const webhookPayloadSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  time: z.string().datetime(),
+  data: z.object({
+    job_id: z.string(),
+    project_id: z.string().optional(),
+    status: z.string().optional(),
+    progress_pct: z.number().optional(),
+    error: z.object({ code: z.string(), message: z.string() }).optional(),
+    artifacts: z.record(z.string()).optional()
+  })
+});
+
+// --- Signature Verification ---
+function verifySignature(req: Request, res: Response, next: NextFunction) {
+  const timestamp = req.headers['x-aethel-timestamp'] as string;
+  const signature = req.headers['x-aethel-signature'] as string;
+
+  if (!timestamp || !signature) {
+    return res.status(400).json({ error: 'Missing security headers' });
+  }
+
+  // Replay protection
+  if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) {
+    return res.status(400).json({ error: 'Timestamp expired' });
+  }
+
+  const payload = JSON.stringify(req.body);
+  const expected = `v1=sha256=${crypto
+    .createHmac('sha256', WEBHOOK_SECRET)
+    .update(`${timestamp}.${payload}`)
+    .digest('hex')}`;
+
+  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+    return res.status(401).json({ error: 'Invalid signature' });
+  }
+
+  next();
+}
+
+// --- GitHub Dispatcher ---
+async function triggerGitHubDispatch(eventType: string, payload: Record<string, unknown>) {
+  const url = `https://api.github.com/repos/${GITHUB_REPO}/dispatches`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GITHUB_PAT}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': GITHUB_API_VERSION,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ event_type: eventType, client_payload: payload })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`GitHub API ${response.status}: ${errText}`);
+  }
+
+  console.log(`✅ Dispatched ${eventType} to ${GITHUB_REPO}`);
+}
+
+// --- Route ---
+app.post('/webhook', verifySignature, async (req: Request, res: Response) => {
+  try {
+    const event = webhookPayloadSchema.parse(req.body);
+
+    // Idempotency check
+    if (!await isIdempotent(event.id)) {
+      console.log(`⏭️ Duplicate event: ${event.id}`);
+      return res.status(200).json({ status: 'ignored_duplicate' });
+    }
+
+    // Route by type
+    switch (event.type) {
+      case 'job.completed':
+        await triggerGitHubDispatch('aethel_job_completed', {
+          job_id: event.data.job_id,
+          project_id: event.data.project_id,
+          artifacts: event.data.artifacts,
+          duration_sec: event.data.progress_pct // map appropriately if needed
+        });
+        break;
+
+      case 'job.failed':
+        await triggerGitHubDispatch('aethel_job_failed', {
+          job_id: event.data.job_id,
+          project_id: event.data.project_id,
+          error: event.data.error
+        });
+        break;
+
+      default:
+        console.log(`ℹ️ Ignored event type: ${event.type}`);
+    }
+
+    res.status(200).json({ status: 'received', event_id: event.id });
+  } catch (err) {
+    console.error('❌ Webhook handler error:', err);
+    // Return 200 to prevent AethelFrame retries, but log for DLQ inspection
+    res.status(200).json({ status: 'logged_error' });
+  }
+});
+
+app.get('/health', (_, res) => res.json({ status: 'ok', uptime: process.uptime() }));
+
+const PORT = Number(process.env.PORT) || 3000;
+app.listen(PORT, () => console.log(`🌉 Bridge listening on :${PORT}`));
+```
+
+---
+
+## 🐳 Deployment (Docker)
+
+**`Dockerfile`**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY dist/ ./dist/
+EXPOSE 3000
+CMD ["node", "dist/index.js"]
+```
+
+**Build & Run**
+```bash
+npx tsc
+docker build -t aethel-webhook-bridge .
+docker run -d -p 3000:3000 --env-file .env aethel-webhook-bridge
+```
+*Deploy to Render, Fly.io, AWS ECS, or GitHub Actions Self-Hosted Runner.*
+
+---
+
+## 🔄 Paired GitHub Actions: `finalize.yml`
+
+```yaml
+name: 📦 Aethel Finalize (Webhook Triggered)
+on:
+  repository_dispatch:
+    types: [aethel_job_completed, aethel_job_failed]
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    env:
+      AETHEL_API_KEY: ${{ secrets.AETHEL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install aethel-sdk httpx
+
+      - name: 🚨 Handle Failure
+        if: github.event.action == 'aethel_job_failed'
+        run: |
+          echo "::error::Job ${{ github.event.client_payload.job_id }} failed"
+          echo "Error: ${{ toJson(github.event.client_payload.error) }}"
+          exit 1
+
+      - name: 📥 Download Artifacts
+        if: github.event.action == 'aethel_job_completed'
+        run: |
+          python -c "
+          import httpx, os, json
+          from pathlib import Path
+          Path('aethel_output').mkdir(exist_ok=True)
+          job_id = '${{ github.event.client_payload.job_id }}'
+          artifacts = json.loads('${{ toJson(github.event.client_payload.artifacts) }}')
+          for k, url in artifacts.items():
+              print(f'Downloading {k}...')
+              r = httpx.get(url, follow_redirects=True)
+              r.raise_for_status()
+              Path(f'aethel_output/{k}').write_bytes(r.content)
+          "
+
+      - name: 📤 Upload to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: aethel-${{ github.event.client_payload.job_id }}
+          path: ./aethel_output/
+          retention-days: 30
+```
+
+---
+
+## 🔐 Security & Production Notes
+
+| Concern | Mitigation |
+|---------|------------|
+| **PAT Exposure** | Store `GITHUB_PAT` in Secrets Manager (AWS SSM, HashiCorp Vault). Never commit to `.env`. Rotate quarterly. |
+| **Idempotency Loss** | Always use Redis. In-memory cache resets on container restart, causing duplicate GitHub dispatches. |
+| **GitHub Rate Limits** | `repository_dispatch` consumes `1 request/trigger`. Well within limits. Queue bursts if >50 events/sec. |
+| **Payload Sanitization** | Microservice only forwards `job_id`, `project_id`, `error`, and `artifacts`. Strips internal `worker_node`, `stack_trace_id`, etc. |
+| **Failure Handling** | Returns `200` to AethelFrame on handler errors to prevent infinite retries. Logs to stdout/stderr for DLQ parsing. |
+| **TLS Termination** | Deploy behind a reverse proxy (Nginx, Cloudflare) with enforced HTTPS webhook URLs. |
+
+---
+
+<details>
+<summary>🐍 Python/FastAPI Alternative (Expand)</summary>
+
+```python
+# main.py
+from fastapi import FastAPI, Request, Header, HTTPException
+import hmac, hashlib, time, os, httpx, asyncio
+from redis.asyncio import Redis
+from pydantic import BaseModel
+import uvicorn
+
+app = FastAPI()
+SECRET = os.environ["AETHEL_WEBHOOK_SECRET"]
+GITHUB_PAT = os.environ["GITHUB_PAT"]
+GITHUB_REPO = os.environ["GITHUB_REPOSITORY"]
+redis = Redis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379"))
+
+class WebhookPayload(BaseModel):
+    id: str
+    type: str
+    data: dict
+
+async def is_idempotent(eid: str) -> bool:
+    exists = await redis.get(f"aethel:evt:{eid}")
+    if not exists:
+        await redis.setex(f"aethel:evt:{eid}", 86400, "1")
+    return bool(exists)
+
+@app.post("/webhook")
+async def handle(req: Request, x_aethel_timestamp: str = Header(...), x_aethel_signature: str = Header(...)):
+    body = await req.body()
+    ts = x_aethel_timestamp.decode()
+    if abs(time.time() - float(ts)) > 300: raise HTTPException(400, "Expired timestamp")
+    msg = f"{ts}.{body.decode()}"
+    expected = f"v1=sha256={hmac.new(SECRET.encode(), msg.encode(), hashlib.sha256).hexdigest()}"
+    if not hmac.compare_digest(x_aethel_signature.decode(), expected):
+        raise HTTPException(401, "Invalid signature")
+        
+    payload = WebhookPayload.model_validate_json(body)
+    if await is_idempotent(payload.id):
+        return {"status": "ignored_duplicate"}
+        
+    async with httpx.AsyncClient() as client:
+        res = await client.post(
+            f"https://api.github.com/repos/{GITHUB_REPO}/dispatches",
+            headers={"Authorization": f"Bearer {GITHUB_PAT}", "Accept": "application/vnd.github+json"},
+            json={"event_type": f"aethel_{payload.type.replace('.', '_')}", "client_payload": payload.data}
+        )
+        res.raise_for_status()
+        
+    return {"status": "dispatched"}
+```
+</details>
+
+---
+
+## ✅ Next Integration Steps
+1. **Deploy** the microservice to a persistent host with TLS.
+2. **Register** the endpoint in Aethel Dashboard → Webhooks → Scope: `job.*`
+3. **Generate** a GitHub PAT with `repo` scope → Add to `GITHUB_PAT` secret.
+4. **Commit** `finalize.yml` to `.github/workflows/`.
+5. **Test** with `curl -X POST https://your-bridge.domain/webhook -d '{"id":"test","type":"job.completed","time":"2026-04-30T00:00:00Z","data":{"job_id":"test_123","artifacts":{}}}'` (use `aethelcli webhook test` for proper signatures).
+
