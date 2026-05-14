@@ -1,0 +1,28 @@
+{
+  "app": "EchoFrame",
+  "runtime": "static-html",
+  "sharedAssets": [
+    "assets/echoframe.css",
+    "assets/echoframe.js"
+  ],
+  "deployments": [
+    {
+      "context": "external",
+      "entrypoint": "deployments/external/index.html",
+      "audience": "public creators",
+      "purpose": "standalone creator workspace and shareable preview package"
+    },
+    {
+      "context": "internal",
+      "entrypoint": "deployments/internal/index.html",
+      "audience": "operators and reviewers",
+      "purpose": "private queue, compliance, webhook, and audit controls"
+    },
+    {
+      "context": "canvas-app",
+      "entrypoint": "deployments/canvas-app/index.html",
+      "audience": "embedded host surfaces",
+      "purpose": "compact app surface with postMessage host bridge"
+    }
+  ]
+}

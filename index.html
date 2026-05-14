@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EchoFrame Contextual Deployments</title>
+  <meta name="description" content="Launch the external, internal, and Canvas App deployments for EchoFrame.">
+  <link rel="stylesheet" href="assets/echoframe.css">
+</head>
+<body>
+  <main class="launch-shell">
+    <section class="launch-panel">
+      <div class="launch-copy">
+        <div class="brand">
+          <div class="brand-mark">EF</div>
+          <div>
+            <h1>EchoFrame Contextual Deployments</h1>
+            <p>One interactive app runtime packaged for public use, private operations, and embedded canvas workflows.</p>
+          </div>
+        </div>
+        <nav class="launch-links" aria-label="Deployment links">
+          <a class="launch-card" href="deployments/external/">
+            <strong>External Deployment</strong>
+            <span>Public creator workspace with preview export manifest.</span>
+          </a>
+          <a class="launch-card" href="deployments/internal/">
+            <strong>Internal Deployment</strong>
+            <span>Private operator workspace with compliance and render controls.</span>
+          </a>
+          <a class="launch-card" href="deployments/canvas-app/">
+            <strong>Canvas App Deployment</strong>
+            <span>Compact embedded workspace with host message bridge.</span>
+          </a>
+        </nav>
+      </div>
+      <div class="launch-visual">
+        <canvas id="launch-canvas" width="720" height="520"></canvas>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="assets/echoframe.js"></script>
+</body>
+</html>

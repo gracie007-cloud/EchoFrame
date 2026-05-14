@@ -1,0 +1,22 @@
+{
+  "name": "EchoFrame Canvas App",
+  "context": "canvas-app",
+  "entrypoint": "./index.html",
+  "storage": "localStorage",
+  "hostBridge": {
+    "transport": "window.postMessage",
+    "source": "echoframe-canvas-app",
+    "outboundEvents": [
+      "ECHOF_FRAME_UPDATE",
+      "ECHOF_FRAME_SAVE"
+    ],
+    "inboundEvents": [
+      "ECHOF_FRAME_CONTEXT"
+    ]
+  },
+  "viewport": {
+    "minWidth": 320,
+    "preferredWidth": 920,
+    "preferredHeight": 720
+  }
+}

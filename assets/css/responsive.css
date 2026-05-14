@@ -1,0 +1,76 @@
+@media (max-width: 1180px) {
+  .main-grid,
+  .main-grid.is-compact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side-panel,
+  .main-grid.is-compact .side-panel {
+    display: block;
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  .top-actions {
+    justify-content: stretch;
+  }
+
+  .top-actions .btn,
+  .top-actions .context-pill,
+  .top-actions .status-pill {
+    flex: 1;
+  }
+
+  .main-grid {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .field-grid,
+  .field-grid.three {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-wrap,
+  .stage-canvas {
+    min-height: 300px;
+  }
+
+  .stage-overlay {
+    grid-template-columns: 1fr;
+  }
+
+  .meter-cluster {
+    justify-items: stretch;
+  }
+
+  .stage-meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stage-meta div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .stage-meta div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .launch-shell {
+    padding: 10px;
+  }
+
+  .launch-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .launch-visual {
+    min-height: 320px;
+  }
+}

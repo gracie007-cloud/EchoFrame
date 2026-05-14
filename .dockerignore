@@ -1,0 +1,10 @@
+*
+!Dockerfile
+!package.json
+!server.cjs
+!index.html
+!contextual-deployments.json
+!assets/
+!assets/**
+!deployments/
+!deployments/**

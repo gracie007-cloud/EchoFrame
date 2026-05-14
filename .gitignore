@@ -1,0 +1,4 @@
+node_modules/
+verification/
+server.log
+server.err.log

@@ -1,4 +1,17 @@
 # Biographical Avatar Studio
+
+## Deployable App
+
+The interactive EchoFrame app is packaged under three contextual deployments:
+
+- External: `deployments/external/index.html`
+- Internal: `deployments/internal/index.html`
+- Canvas App: `deployments/canvas-app/index.html`
+
+The static frontend runtime is split into vanilla browser modules under `assets/js/` and served by the Cloud Run-compatible `server.cjs`.
+
+See `DEPLOYMENTS.md` for local run instructions, Cloud Run deployment, and Canvas App bridge details.
+
 an AI-powered video generation app that creates cinematic, first-person biographical documentaries where the subject narrates their own story. It supports historical figures, animals, mythological beings, supernatural entities, and fictional characters. All non-human subjects are rendered as anthropomorphic avatars that preserve defining traits while adopting human-like posture, facial expression, and speech mechanics.
 
 # 🎬 **AethelFrame: First-Person Biographical Avatar Studio**

@@ -1,0 +1,98 @@
+.launch-shell {
+  min-height: 100vh;
+  padding: 24px;
+  display: grid;
+  align-items: center;
+}
+
+.launch-panel {
+  max-width: 1120px;
+  margin: 0 auto;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(300px, 0.85fr) minmax(420px, 1fr);
+}
+
+.launch-copy {
+  padding: 28px;
+  display: grid;
+  gap: 18px;
+  align-content: center;
+}
+
+.launch-copy h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.05;
+}
+
+.launch-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.launch-links {
+  display: grid;
+  gap: 10px;
+}
+
+.launch-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--panel-soft);
+}
+
+.launch-card:hover {
+  border-color: var(--teal);
+  background: #fff;
+}
+
+.launch-card strong {
+  font-size: 1rem;
+}
+
+.launch-card span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.launch-visual {
+  min-height: 520px;
+  background: #151719;
+  position: relative;
+  overflow: hidden;
+}
+
+.launch-visual canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.doc-shell {
+  padding: 24px;
+}
+
+.doc-panel {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.doc-panel h1,
+.doc-panel h2 {
+  margin-top: 0;
+}
+
+.doc-panel code {
+  font-family: var(--mono);
+  background: var(--panel-soft);
+  padding: 2px 5px;
+  border-radius: 4px;
+}
