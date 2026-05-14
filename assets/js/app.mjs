@@ -75,7 +75,7 @@ class EchoFrameApp {
           value = Number(control.value);
           const label = document.getElementById(field + "-value");
           if (label) {
-            const suffix = field === "duration" ? "sec" : field === "pitch" || field === "tempo" ? "x" : "%";
+            const suffix = field === "duration" ? " sec" : field === "pitch" || field === "tempo" ? "x" : "%";
             label.textContent = value + suffix;
           }
         } else {
@@ -134,7 +134,7 @@ class EchoFrameApp {
     if (action === "export") {
       this.setState({
         exportId: makeExportId(this.state),
-        renderStatus: "Export manifest built",
+        renderStatus: "Share package ready",
         progress: Math.max(this.state.progress, 100)
       });
       return;
@@ -153,10 +153,10 @@ class EchoFrameApp {
     const source = this.state.sourceText || "the available record";
     const tone = this.state.tone;
     return [
-      "[Verified] I am " + name + ", speaking from the record that shaped my life.",
-      "[Verified] " + source,
-      "[Speculative] In a " + tone + " voice, I connect the turning points that made my story endure.",
-      "[Verified] This reconstruction closes with provenance, captions, and a clear AI disclosure."
+      "I am " + name + ", and this is the moment I want you to understand first.",
+      source,
+      "In a " + tone + " voice, I connect the turning points that made this story endure.",
+      "This preview closes with captions, source clarity, and a visible AI-created label."
     ].join("\n");
   }
 
@@ -167,9 +167,9 @@ class EchoFrameApp {
       archetype: "Rosetta Stone",
       sourceText: "A granodiorite decree that helped scholars unlock Egyptian hieroglyphs.",
       script: [
-        "[Verified] I was carved with a decree, repeated in scripts that crossed kingdoms.",
-        "[Verified] Centuries later, my surface became a bridge between languages.",
-        "[Speculative] I remember hands, dust, and the quiet pressure of people searching for meaning."
+        "I was carved with a decree, repeated in scripts that crossed kingdoms.",
+        "Centuries later, my surface became a bridge between languages.",
+        "Imagine the hands, dust, and quiet pressure of people searching for meaning."
       ].join("\n"),
       tone: "scholarly",
       accuracy: "speculative inline",
@@ -192,7 +192,7 @@ class EchoFrameApp {
         step += 1;
       }
       this.state.progress = nextProgress;
-      this.state.renderStatus = nextProgress >= 100 ? "Preview render complete" : renderSteps[step];
+      this.state.renderStatus = nextProgress >= 100 ? "Preview is ready" : renderSteps[step];
       this.persist();
       this.updateRenderProgress();
       if (nextProgress >= 100) {

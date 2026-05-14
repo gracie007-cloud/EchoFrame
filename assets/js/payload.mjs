@@ -1,16 +1,16 @@
 export function readiness(state, context) {
   const base = [
-    { label: "Subject profile", ok: Boolean(state.subjectName && state.sourceText) },
-    { label: "Script", ok: Boolean(state.script) },
-    { label: "Avatar mapping", ok: Boolean(state.subjectType && state.archetype) },
-    { label: "Voice and scene", ok: Boolean(state.voice && state.scene) }
+    { label: "Story subject and notes", ok: Boolean(state.subjectName && state.sourceText) },
+    { label: "Narration draft", ok: Boolean(state.script) },
+    { label: "Look and character style", ok: Boolean(state.subjectType && state.archetype) },
+    { label: "Voice and setting", ok: Boolean(state.voice && state.scene) }
   ];
   if (context.key === "internal") {
-    base.push({ label: "Consent gate", ok: Boolean(state.consent) });
-    base.push({ label: "Provenance manifest", ok: Boolean(state.c2pa && state.watermark) });
+    base.push({ label: "Permission check", ok: Boolean(state.consent) });
+    base.push({ label: "Origin details", ok: Boolean(state.c2pa && state.watermark) });
   }
   if (context.key === "canvas") {
-    base.push({ label: "Host payload", ok: Boolean(state.subjectName && state.script) });
+    base.push({ label: "Host page update", ok: Boolean(state.subjectName && state.script) });
   }
   return base;
 }
@@ -28,15 +28,15 @@ export function complianceScore(state) {
 
 export function provenanceLine(state) {
   const parts = [];
-  parts.push(state.watermark ? "visible label" : "no visible label");
-  parts.push(state.c2pa ? "C2PA enabled" : "C2PA off");
+  parts.push(state.watermark ? "AI-created label shown" : "AI-created label hidden");
+  parts.push(state.c2pa ? "origin details included" : "origin details off");
   parts.push(state.captions ? "captions included" : "captions off");
   return parts.join(", ") + ".";
 }
 
 export function auditLine(state) {
-  const sourceMode = state.privateSources ? "private source vault" : "public citations";
-  return "Score " + complianceScore(state) + "%, " + sourceMode + ", " + state.queuePriority + " queue.";
+  const sourceMode = state.privateSources ? "private source notes" : "public source notes";
+  return "Readiness " + complianceScore(state) + "%, " + sourceMode + ", " + state.queuePriority + " priority.";
 }
 
 export function buildPayload(state, context) {

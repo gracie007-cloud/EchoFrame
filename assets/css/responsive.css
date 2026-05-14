@@ -33,7 +33,13 @@
   }
 
   .field-grid,
-  .field-grid.three {
+  .field-grid.three,
+  .guide-steps,
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-head {
     grid-template-columns: 1fr;
   }
 

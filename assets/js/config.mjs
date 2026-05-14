@@ -1,33 +1,33 @@
 export const contexts = {
   external: {
     key: "external",
-    label: "External",
-    headline: "EchoFrame Studio",
-    subhead: "Public creator workspace",
-    delivery: "Public static deployment",
-    status: "Share-ready",
+    label: "Guided Studio",
+    headline: "EchoFrame Story Studio",
+    subhead: "A friendly AI guide for shaping narrated video ideas.",
+    delivery: "Guided story draft",
+    status: "Ready to help",
     compact: false,
     tabs: ["story", "avatar", "voice", "render"],
     side: "public"
   },
   internal: {
     key: "internal",
-    label: "Internal",
-    headline: "EchoFrame Control Room",
-    subhead: "Private review and render operations",
-    delivery: "Private operator deployment",
-    status: "Ops online",
+    label: "Team Review",
+    headline: "EchoFrame Team Studio",
+    subhead: "Review stories, source notes, and publishing readiness.",
+    delivery: "Team review workspace",
+    status: "Ready for review",
     compact: false,
     tabs: ["story", "avatar", "voice", "render", "ops"],
     side: "ops"
   },
   canvas: {
     key: "canvas",
-    label: "Canvas App",
-    headline: "EchoFrame Canvas",
-    subhead: "Compact embedded studio",
-    delivery: "Host-embedded Canvas App",
-    status: "Bridge idle",
+    label: "Quick Assist",
+    headline: "EchoFrame Quick Story Helper",
+    subhead: "A compact guided studio for host pages and embeds.",
+    delivery: "Embedded story helper",
+    status: "Ready to share",
     compact: true,
     tabs: ["story", "avatar", "render"],
     side: "bridge"
@@ -35,12 +35,12 @@ export const contexts = {
 };
 
 export const renderSteps = [
-  "Story graph normalized",
-  "Avatar rig assembled",
-  "Voice prosody mapped",
-  "Scene layers composed",
-  "Compliance markers applied",
-  "Preview encoded"
+  "Reading your notes",
+  "Shaping the story",
+  "Sketching the character",
+  "Warming up the narrator",
+  "Setting the scene",
+  "Preparing your preview"
 ];
 
 export const archetypes = {
@@ -80,7 +80,7 @@ export const defaultState = {
   webhook: "https://example.internal/webhooks/echoframe",
   privateSources: true,
   progress: 0,
-  renderStatus: "Idle",
+  renderStatus: "Ready when you are",
   exportId: "",
   bridgeStatus: "Waiting for host",
   lastSaved: ""

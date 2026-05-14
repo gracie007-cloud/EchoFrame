@@ -10,6 +10,8 @@ The interactive EchoFrame app is packaged under three contextual deployments:
 
 The static frontend runtime is split into vanilla browser modules under `assets/js/` and served by the Cloud Run-compatible `server.cjs`.
 
+The current static app includes a local AI-assist guide named Echo that gives non-technical users next-step direction, starter-script help, preview readiness, and share-package summaries without changing the exported browser payload contract.
+
 See `DEPLOYMENTS.md` for local run instructions, Cloud Run deployment, and Canvas App bridge details.
 
 an AI-powered video generation app that creates cinematic, first-person biographical documentaries where the subject narrates their own story. It supports historical figures, animals, mythological beings, supernatural entities, and fictional characters. All non-human subjects are rendered as anthropomorphic avatars that preserve defining traits while adopting human-like posture, facial expression, and speech mechanics.
